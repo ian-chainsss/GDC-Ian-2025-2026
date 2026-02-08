@@ -16,7 +16,8 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr
 
 #logging & authentication imports
-from app.functions import create_password_hash, verify_password, create_jwt_token
+from app.functions import create_password_hash, verify_password, create_jwt_token, verify_jwt_token
+from typing import Optional
 import logging
 
 #proxy middleware import
@@ -95,6 +96,13 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+class UserUpdate(BaseModel):
+    """Model for updating an existing user. Only provided fields will be changed."""
+    id: int
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
 @app.post("/users", status_code=201)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """Create a new user in the database with hashed password."""
@@ -117,10 +125,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=409, detail="Email already exists")
 
     #password hashing
-    try:
-        password_hash = await create_password_hash(user.password)
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Password hashing failed")
+    password_hash = await create_password_hash(user.password)
 
     #create user in database
     new_user = models.User(username=user.username, email=user.email, password_hash=password_hash)
@@ -156,18 +161,10 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     #verify password using helper
-    try:
-        verified = await verify_password(user.password_hash, credentials.password)
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Password verification failed")
-    if not verified:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    verified = await verify_password(user.password_hash, credentials.password)
 
     #generate JWT token using helper
-    try:
-        token, exp = await create_jwt_token(user.id, user.username, user.role)
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Token generation failed")
+    token, exp = await create_jwt_token(user.id, user.username, user.role)
     
     #create secure cookie with token
     try:
@@ -184,3 +181,16 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
 
     #return token and expiration time
     return {"id": user.id, "username": user.username, "email": user.email}
+
+@app.post("/logout")
+async def logout(request: Request, response: Response):
+    """Logout user by clearing the authentication cookie."""
+    jwt = request.cookies.get("access_token")
+    if not jwt:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        response.delete_cookie(key="access_token")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
+    return {"message": "Logged out successfully"}

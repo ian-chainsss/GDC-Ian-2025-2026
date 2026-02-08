@@ -4,6 +4,7 @@ from argon2.exceptions import VerifyMismatchError, Argon2Error
 import jwt
 
 # algemene imports
+from fastapi import Request, HTTPException
 from datetime import datetime, timedelta
 
 # config imports
@@ -25,7 +26,7 @@ async def create_password_hash(password: str) -> str:
     try:
         return ph.hash(password)
     except Argon2Error as e:
-        raise RuntimeError("Password hashing failed") from e
+        raise HTTPException(status_code=500, detail="Password hashing failed")
 
 async def verify_password(stored_hash: str, password: str) -> bool:
     """Verify a plain password against a stored Argon2 hash. Expects stored_hash and password. Returns boolean."""
@@ -35,9 +36,9 @@ async def verify_password(stored_hash: str, password: str) -> bool:
         ph.verify(stored_hash, password)
         return True
     except VerifyMismatchError:
-        return False
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     except Argon2Error as e:
-        raise RuntimeError("Password verification failed") from e
+        raise HTTPException(status_code=500, detail="Password verification failed")
     
 async def create_jwt_token(user_id: int, username: str, role: int):
     """Create a JWT token and return (token, expiration_datetime). Expects user_id, username, role."""
@@ -55,22 +56,26 @@ async def create_jwt_token(user_id: int, username: str, role: int):
     try:
         token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     except Exception as e:
-        raise RuntimeError("Token generation failed") from e
+        raise HTTPException(status_code=500, detail="Token generation failed")
 
     return token, exp
 
-async def verify_jwt_token(token: str):
-    """Verify a JWT token and return (is_valid: bool, payload: dict|None)."""
+async def verify_jwt_token(request: Request):
+    """Verify a JWT token from the request. Returns the decoded payload dict if valid, otherwise raises HTTPException."""
     
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication token missing")
+
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-        return True, payload
+        return payload
     except jwt.ExpiredSignatureError:
-        return False, None
+        raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
-        return False, None
+        raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
-        raise RuntimeError("Token verification failed") from e
+        raise HTTPException(status_code=500, detail="Token verification failed") from e
 
 async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
     """Check whether the given JWT payload grants user access."""
@@ -87,7 +92,6 @@ async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
         return False
 
     return role_int <= level
-
 
 async def has_level_access_by_db(payload: dict, level: int) -> bool:
     """Check whether the user identified in `payload` has access by querying the DB."""
