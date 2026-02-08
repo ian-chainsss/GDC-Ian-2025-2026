@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr
 
 #logging & authentication imports
-from app.functions import create_password_hash, verify_password, create_jwt_token, verify_jwt_token
+from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token
 from typing import Optional
 import logging
 
@@ -74,6 +74,19 @@ async def read_root(request: Request):
 
 # -------- USER ENDPOINTS --------
 
+class UserCreate(BaseModel):
+    """Model for creating a new user."""
+    username: str
+    email: EmailStr
+    password: str
+
+class UserUpdate(BaseModel):
+    """Model for updating an existing user. Only provided fields will be changed."""
+    id: int
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
 @app.get("/users")
 async def get_users(db: AsyncSession = Depends(get_db)):
     """Retrieve all users and their information from the database."""
@@ -90,30 +103,12 @@ async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
     user = result.scalars().first() #scalars() haalt alle kolommen op, first() haalt de eerste rij op
     return user
 
-class UserCreate(BaseModel):
-    """Model for creating a new user."""
-    username: str
-    email: EmailStr
-    password: str
-
-class UserUpdate(BaseModel):
-    """Model for updating an existing user. Only provided fields will be changed."""
-    id: int
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-
 @app.post("/users", status_code=201)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """Create a new user in the database with hashed password."""
 
     #basic password & input validation
-    if not user.password or len(user.password) < 8:
-        raise HTTPException(status_code=422, detail="Password must be at least 8 characters long")
-    if not user.username or len(user.username) < 3:
-        raise HTTPException(status_code=422, detail="Username must be at least 3 characters long")
-    if not user.email:
-        raise HTTPException(status_code=422, detail="Email must be provided")
+    await check_user_requirements(user)
 
     # check for existing username or email
     result = await db.execute(select(models.User).where((models.User.username == user.username) | (models.User.email == user.email)))
@@ -142,6 +137,69 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 
     #return new user data
     return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "created_at": new_user.created_at}
+
+@app.put("/users", status_code=200)
+async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Depends(get_db)):
+    """Update an existing user's data. User must be authenticated and match the JWT subject."""
+
+    # verify token and ensure user is same as token subject
+    payload = await verify_jwt_token(request)
+    sub = payload.get("sub")
+    try:
+        auth_user_id = int(sub)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
+    if auth_user_id != user.id:
+        raise HTTPException(status_code=403, detail="Cannot modify another user's data")
+
+    # Validate provided fields (only validate fields that are provided)
+    if user.password is not None and len(user.password) < 8:
+            raise HTTPException(status_code=422, detail="Password must be at least 8 characters long")
+    if user.username is not None and len(user.username) < 3:
+            raise HTTPException(status_code=422, detail="Username must be at least 3 characters long")
+
+    # Check for username/email conflicts with other users
+    conflict_filters = []
+    if user.username:
+        conflict_filters.append(models.User.username == user.username)
+    if user.email:
+        conflict_filters.append(models.User.email == user.email)
+    if conflict_filters:
+        result = await db.execute(select(models.User).where(or_(*conflict_filters)).where(models.User.id != user.id))
+        existing = result.scalars().first()
+        if existing:
+            if user.username and existing.username == user.username:
+                raise HTTPException(status_code=409, detail="Username already exists")
+            if user.email and existing.email == user.email:
+                raise HTTPException(status_code=409, detail="Email already exists")
+
+    # Fetch the user to update
+    result = await db.execute(select(models.User).where(models.User.id == user.id))
+    db_user = result.scalars().first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Apply updates
+    if user.username:
+        db_user.username = user.username
+    if user.email:
+        db_user.email = user.email
+    if user.password:
+        password_hash = await create_password_hash(user.password)
+        db_user.password_hash = password_hash
+
+    try:
+        await db.commit()
+        await db.refresh(db_user)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Username or email already exists")
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Could not update user")
+
+    return {"id": db_user.id, "username": db_user.username, "email": db_user.email}
 
 # -------- AUTHENTICATION ENDPOINTS --------
 

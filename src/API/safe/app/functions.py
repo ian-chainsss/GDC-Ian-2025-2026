@@ -40,6 +40,16 @@ async def verify_password(stored_hash: str, password: str) -> bool:
     except Argon2Error as e:
         raise HTTPException(status_code=500, detail="Password verification failed")
     
+async def check_user_requirements(user) -> None:
+    """Check basic requirements for user creation. Raises HTTPException if any requirement is not met."""
+
+    if not user.password or len(user.password) < 8:
+        raise HTTPException(status_code=422, detail="Password must be at least 8 characters long")
+    if not user.username or len(user.username) < 3:
+        raise HTTPException(status_code=422, detail="Username must be at least 3 characters long")
+    if not user.email:
+        raise HTTPException(status_code=422, detail="Email must be provided")
+    
 async def create_jwt_token(user_id: int, username: str, role: int):
     """Create a JWT token and return (token, expiration_datetime). Expects user_id, username, role."""
 
