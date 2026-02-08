@@ -91,46 +91,48 @@ async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
     """Check whether the given JWT payload grants user access."""
 
     if not isinstance(payload, dict) or level is None:
-        return False
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
     role = payload.get("role")
     if role is None:
-        return False
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
 
     try:
         role_int = int(role)
     except (TypeError, ValueError):
-        return False
-
-    return role_int <= level
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
+    
+    if not role_int <= level:
+        raise HTTPException(status_code=403, detail="Insufficient access level")
 
 async def has_level_access_by_db(payload: dict, level: int) -> bool:
     """Check whether the user identified in `payload` has access by querying the DB."""
 
+    # Validate payload and extract user ID
     if not isinstance(payload, dict) or level is None:
-        return False
-
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
     sub = payload.get("sub")
     if sub is None:
-        return False
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
     try:
         user_id = int(sub)
     except (TypeError, ValueError):
-        return False
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
 
+    # Query the database for the user's data and check if user exists
     query = select(User).where(User.id == user_id)
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(query)
             user = result.scalars().first()
     except Exception:
-        return False
-
+        raise HTTPException(status_code=500, detail="Database query failed")
     if not user:
-        return False
+        raise HTTPException(status_code=404, detail="User not found")
 
     try:
         role_int = int(user.role)
     except (TypeError, ValueError):
-        return False
+        raise HTTPException(status_code=400, detail="Invalid payload or access level")
 
-    return role_int <= level
+    if not role_int <= level:
+        raise HTTPException(status_code=403, detail="Insufficient access level")
