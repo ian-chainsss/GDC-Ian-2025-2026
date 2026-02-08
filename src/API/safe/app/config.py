@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     JWT_EXP_MINUTES: int = int(getenv("JWT_EXP_MINUTES", 15))
 
     #Argon2 Hashing settings
-    HASH_TIME_COST: int = int(getenv("HASH_TIME_COST", 3))
-    HASH_MEMORY_COST: int = int(getenv("HASH_MEMORY_COST", 65536))  # in KB
+    HASH_TIME_COST: int = int(getenv("HASH_TIME_COST", 5))
+    HASH_MEMORY_COST: int = int(getenv("HASH_MEMORY_COST", 128*1024))  # in KB
     HASH_PARALLELISM: int = int(getenv("HASH_PARALLELISM", 4))
     HASH_SALT_LENGTH: int = int(getenv("HASH_SALT_LENGTH", 16))
     HASH_HASH_LENGTH: int = int(getenv("HASH_HASH_LENGTH", 32))
