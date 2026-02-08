@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr
 
 #logging & authentication imports
-from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token
+from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt
 from typing import Optional
 import logging
 
@@ -85,9 +85,8 @@ class UserUpdate(BaseModel):
     id: int
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    password: Optional[str] = None@app.get("/users")
 
-@app.get("/users")
 async def get_users(db: AsyncSession = Depends(get_db)):
     """Retrieve all users and their information from the database."""
     
@@ -252,3 +251,43 @@ async def logout(request: Request, response: Response):
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
     return {"message": "Logged out successfully"}
+
+# -------- MESSAGE ENDPOINTS --------
+
+class PostCreate(BaseModel):
+    """Model for creating a new post."""
+    title: str
+    content: str
+    content_mime: Optional[str] = 'text/html'
+
+@app.post("/posts", status_code=201)
+async def create_post(post: PostCreate, request: Request, db: AsyncSession = Depends(get_db)):
+    """Create a new post. Requires valid JWT and at least level 9 access."""
+
+    # Verify JWT from cookie
+    payload = await verify_jwt_token(request)
+
+    # Ensure user has required access level
+    await has_level_access_by_jwt(payload, 9)
+
+    # extract user id from token
+    sub = payload.get("sub")
+    try:
+        author_id = int(sub)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
+    # create post
+    new_post = models.Post(author_id=author_id, title=post.title, content=post.content, content_mime=post.content_mime)
+    db.add(new_post)
+    try:
+        await db.commit()
+        await db.refresh(new_post)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Could not create post")
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Could not create post")
+
+    return {"id": new_post.id, "author_id": new_post.author_id, "title": new_post.title, "created_at": new_post.created_at}
