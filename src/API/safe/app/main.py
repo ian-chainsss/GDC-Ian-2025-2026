@@ -71,7 +71,7 @@ async def on_startup():
 @app.get("/")
 async def read_root(request: Request):
     """Root endpoint returning a welcome message and client IP address."""
-    return {"message": "Hello, welcome to the Safe API! GDC research project by Ian-Chains Baute.", "client_host": request.client.host}
+    return {"detail": "Hello, welcome to the Safe API! GDC research project by Ian-Chains Baute.", "client_host": request.client.host}
 
 # -------- USER ENDPOINTS --------
 
@@ -252,7 +252,7 @@ async def logout(request: Request, response: Response):
         response.delete_cookie(key="access_token")
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
-    return {"message": "Logged out successfully"}
+    return {"detail": "Logged out successfully"}
 
 # -------- MESSAGE ENDPOINTS --------
 
@@ -373,6 +373,7 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
 
     return {"query": q, "results": posts}
 
+# -------- ADMIN ENDPOINTS --------
 
 @app.post("/reset", status_code=200)
 async def reset_database(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
