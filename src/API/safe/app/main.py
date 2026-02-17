@@ -2,6 +2,7 @@
 # api imports
 from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response
+from fastapi.responses import RedirectResponse
 from datetime import datetime, timedelta
 
 # database & ORM imports
@@ -9,7 +10,7 @@ from app.database import get_db
 from app.database import AsyncSessionLocal
 import app.models as models
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, text
 from sqlalchemy.exc import IntegrityError
 
 # pydantic imports
@@ -371,3 +372,32 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
         })
 
     return {"query": q, "results": posts}
+
+
+@app.post("/reset", status_code=200)
+async def reset_database(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    """Reset all application data in the database while keeping tables/schema."""
+
+    # Verify JWT and access level
+    payload = await verify_jwt_token(request)
+    await has_level_access_by_jwt(payload, 1)
+
+    # Perform truncate of known tables while keeping schema and resetting identities
+    try:
+        await db.execute(text(
+            "TRUNCATE TABLE content.comments, content.posts, access.refresh_tokens, access.password_resets, access.users RESTART IDENTITY CASCADE"
+        ))
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Could not reset database")
+
+    redirect = RedirectResponse(url="/", status_code=303)
+    # Remove authentication cookie
+    try:
+        redirect.delete_cookie(key="access_token")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
+
+    # Return HTML that reloads the page on the client
+    return redirect
