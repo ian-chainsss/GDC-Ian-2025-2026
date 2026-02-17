@@ -33,9 +33,14 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - BOLA - Broken Object Level Authorization
 
 ## Toegang tot webapp & API
+### Webapp & frontend
+- Safe App: https://safe-app.ian-chains.be/ - **inactive**
+- Unsafe App: https://unsafe-app.ian-chains.be/ - **In Development**
+
+### API
 - Safe API: https://safe-api.ian-chains.be/ - **active**
     - OPEN API DOCS: https://safe-api.ian-chains.be/docs
-- Unsafe API: https://unsafe-api.ian-chains.be/ - **unactive**
+- Unsafe API: https://unsafe-api.ian-chains.be/ - **inactive**
     - OPEN API DOCS: https://unsafe-api.ian-chains.be/docs
 
 ## Gebruikte Software
@@ -45,11 +50,16 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - [WireGuard](https://www.wireguard.com/) - VPN Software
 - [PostreSQL](https://www.postgresql.org/) - SQL Database
 
-### Development Libraries
+### Development Libraries API
 - [Python](https://www.python.org/) - Programming Language
 - [FastAPI](https://fastapi.tiangolo.com/) - Python API Framework
 - [PyTest](https://docs.pytest.org/en/stable/) - Python Code Testing
 - [PyLint](https://pypi.org/project/pylint/) - Python Code Checking
+
+### Development Libraries Frontend
+- [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
+- [DaisyUI](https://daisyui.com/) - Tailwind Component Library
+- [HyperUI](https://hyperui.dev/) - Tailwind Component Library
 
 ### Software Tools
 - [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
