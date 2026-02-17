@@ -293,7 +293,7 @@ async def create_post(post: PostCreate, request: Request, db: AsyncSession = Dep
 
     return {"id": new_post.id, "author_id": new_post.author_id, "title": new_post.title, "created_at": new_post.created_at}
 
-@app.get("/posts/{post_id}")
+@app.get("/posts/id/{post_id}")
 async def get_post_by_id(post_id: int, db: AsyncSession = Depends(get_db)):
     """Retrieve a post by its ID from the database."""
 
