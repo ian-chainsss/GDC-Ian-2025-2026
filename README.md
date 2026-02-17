@@ -43,6 +43,9 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - Unsafe API: https://unsafe-api.ian-chains.be/ - **inactive**
     - OPEN API DOCS: https://unsafe-api.ian-chains.be/docs
 
+## Docker Container Setup
+Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden in het bestand `src/API/README.md`.
+
 ## Gebruikte Software
 ### Development Software
 - [Docker](https://www.docker.com/) - Containerization Software
@@ -68,6 +71,3 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - [Postman](https://www.postman.com/) - API Testing & Collaboration Software
 - [HTTP Toolkit](https://httptoolkit.com/) - API Intercept Software
 - [Burp Suite Community Edition](https://portswigger.net/burp/communitydownload) - Pen Testing Software for HTTP Applications
-
-### Docker Container Setup
-Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden in het bestand `src/API/README.md`.
