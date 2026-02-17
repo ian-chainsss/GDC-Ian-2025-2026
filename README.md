@@ -37,6 +37,7 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - Safe App: https://safe-app.ian-chains.be/ - **inactive**
 - Unsafe App: https://unsafe-app.ian-chains.be/ - **In Development**
 
+---
 ### API
 - Safe API: https://safe-api.ian-chains.be/ - **active**
     - OPEN API DOCS: https://safe-api.ian-chains.be/docs
