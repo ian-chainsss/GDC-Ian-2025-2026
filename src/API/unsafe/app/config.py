@@ -13,6 +13,18 @@ class Settings(BaseSettings):
     DB_URL: str = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     DB_ECHO_QUERIES: bool = getenv("DB_ECHO_QUERIES", "true").lower() in ("true", "1", "yes")
     
+    # JWT settings
+    JWT_SECRET: str = getenv("JWT_SECRET", "change-this-secret")
+    JWT_ALGORITHM: str = getenv("JWT_ALGORITHM", "HS256")
+    JWT_EXP_MINUTES: int = int(getenv("JWT_EXP_MINUTES", 15))
+
+    #Argon2 Hashing settings
+    HASH_TIME_COST: int = int(getenv("HASH_TIME_COST", 5))
+    HASH_MEMORY_COST: int = int(getenv("HASH_MEMORY_COST", 128*1024))  # in KB
+    HASH_PARALLELISM: int = int(getenv("HASH_PARALLELISM", 4))
+    HASH_SALT_LENGTH: int = int(getenv("HASH_SALT_LENGTH", 16))
+    HASH_HASH_LENGTH: int = int(getenv("HASH_HASH_LENGTH", 32))
+    
 settings = Settings()
 # gebruik settings.DB_HOST etc.
 
