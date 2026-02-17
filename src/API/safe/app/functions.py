@@ -102,7 +102,7 @@ async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
         raise HTTPException(status_code=400, detail="Invalid payload or access level")
     
     if not role_int <= level:
-        raise HTTPException(status_code=403, detail="Insufficient access level")
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
 
 async def has_level_access_by_db(payload: dict, level: int) -> bool:
     """Check whether the user identified in `payload` has access by querying the DB."""
@@ -135,4 +135,4 @@ async def has_level_access_by_db(payload: dict, level: int) -> bool:
         raise HTTPException(status_code=400, detail="Invalid payload or access level")
 
     if not role_int <= level:
-        raise HTTPException(status_code=403, detail="Insufficient access level")
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
