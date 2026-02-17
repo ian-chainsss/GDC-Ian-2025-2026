@@ -85,8 +85,9 @@ class UserUpdate(BaseModel):
     id: int
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None@app.get("/users")
-
+    password: Optional[str] = None
+    
+@app.get("/users")
 async def get_users(db: AsyncSession = Depends(get_db)):
     """Retrieve all users and their information from the database."""
     
@@ -291,3 +292,82 @@ async def create_post(post: PostCreate, request: Request, db: AsyncSession = Dep
         raise HTTPException(status_code=500, detail="Could not create post")
 
     return {"id": new_post.id, "author_id": new_post.author_id, "title": new_post.title, "created_at": new_post.created_at}
+
+@app.get("/posts/{post_id}")
+async def get_post_by_id(post_id: int, db: AsyncSession = Depends(get_db)):
+    """Retrieve a post by its ID from the database."""
+
+    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = result.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post
+
+@app.get("/posts")
+async def get_latest_posts(db: AsyncSession = Depends(get_db)):
+    """Return the latest 5 posts without content. Each item contains post id, title and author username."""
+
+    # join posts with users to get author username and avoid lazy loads
+    result = await db.execute(
+        select(models.Post, models.User.username)
+        .join(models.User, models.Post.author_id == models.User.id)
+        .order_by(models.Post.created_at.desc())
+        .limit(5)
+    )
+
+    #format results to include post id, title, author username and created_at, but exclude content for performance
+    rows = result.all()
+    posts = []
+    for post, username in rows:
+        posts.append({
+            "id": post.id,
+            "title": post.title,
+            "author_id": post.author_id,
+            "author": username,
+            "created_at": post.created_at,
+        })
+
+    return posts
+
+
+@app.get("/posts/search")
+async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
+    """Search posts by title. Returns list of posts with id, title, author and created_at.
+
+    - `q`: zoekterm(en), spaties splitsen in woorden
+    """
+
+    # validate query parameter
+    if not q or not q.strip():
+        raise HTTPException(status_code=400, detail="Missing or empty 'q' parameter")
+
+    # split query into terms, remove extra spaces
+    terms = [t.strip() for t in q.split() if t.strip()]
+    if not terms:
+        raise HTTPException(status_code=400, detail="Invalid 'q' parameter")
+
+    # build OR filters for each term against the title (case-insensitive, partial match)
+    filters = [models.Post.title.ilike(f"%{term}%") for term in terms]
+
+    # join posts with users to get author username and avoid lazy loads, apply filters and order by newest first
+    stmt = (
+        select(models.Post, models.User.username)
+        .join(models.User, models.Post.author_id == models.User.id)
+        .where(or_(*filters))
+        .order_by(models.Post.created_at.desc())
+    )
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    # format results to include post id, title, author username and created_at, but exclude content for performance
+    posts = []
+    for post, username in rows:
+        posts.append({
+            "id": post.id,
+            "title": post.title,
+            "author": username,
+            "created_at": post.created_at,
+        })
+
+    return {"query": q, "results": posts}
