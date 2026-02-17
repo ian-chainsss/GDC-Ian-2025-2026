@@ -1,10 +1,10 @@
 # -------- IMPORTS --------
-#api imports
+# api imports
 from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response
 from datetime import datetime, timedelta
 
-#database & ORM imports
+# database & ORM imports
 from app.database import get_db
 from app.database import AsyncSessionLocal
 import app.models as models
@@ -12,20 +12,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
 
-#pydantic imports
+# pydantic imports
 from pydantic import BaseModel, EmailStr
 
-#logging & authentication imports
+# logging & authentication imports
 from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt
 from typing import Optional
 import logging
 
-#proxy middleware import
+# proxy middleware import
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # -------- SETUP & CONFIGURATION --------
 
-#app setup
+# app setup
 app = FastAPI(
     title="Safe API - GDC Ian",
     description=description,
@@ -42,18 +42,18 @@ app = FastAPI(
     },
 )
 
-#logging setup
+# logging setup
 app.add_middleware(
     ProxyHeadersMiddleware,
     trusted_hosts="*"
 )
 
-#database connection test on startup
+# database connection test on startup
 @app.on_event("startup")
 async def on_startup():
     logger = logging.getLogger("uvicorn.error")
 
-    #If session factory not configured, log and skip test
+    # If session factory not configured, log and skip test
     if AsyncSessionLocal is None:
         logger.error("AsyncSessionLocal not configured; skipping DB connection test.")
         return
@@ -92,7 +92,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     """Retrieve all users and their information from the database."""
     
     result = await db.execute(select(models.User))
-    users = result.scalars().all() #scalars() haalt alle kolommen op, all() zet om in lijst
+    users = result.scalars().all() # scalars() haalt alle kolommen op, all() zet om in lijst
     return users
 
 @app.get("/users/{user_id}")
@@ -100,14 +100,14 @@ async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
     """Retrieve a user by their ID from the database."""
 
     result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first() #scalars() haalt alle kolommen op, first() haalt de eerste rij op
+    user = result.scalars().first() # scalars() haalt alle kolommen op, first() haalt de eerste rij op
     return user
 
 @app.post("/users", status_code=201)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """Create a new user in the database with hashed password."""
 
-    #basic password & input validation
+    # basic password & input validation
     await check_user_requirements(user)
 
     # check for existing username or email
@@ -119,10 +119,10 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         if existing.email == user.email:
             raise HTTPException(status_code=409, detail="Email already exists")
 
-    #password hashing
+    # password hashing
     password_hash = await create_password_hash(user.password)
 
-    #create user in database
+    # create user in database
     new_user = models.User(username=user.username, email=user.email, password_hash=password_hash)
     db.add(new_user)
     try:
@@ -135,7 +135,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         await db.rollback()
         raise HTTPException(status_code=500, detail="Could not create user")
 
-    #return new user data
+    # return new user data
     return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "created_at": new_user.created_at}
 
 @app.put("/users", status_code=200)
@@ -218,13 +218,13 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    #verify password using helper
+    # verify password using helper
     verified = await verify_password(user.password_hash, credentials.password)
 
-    #generate JWT token using helper
+    # generate JWT token using helper
     token, exp = await create_jwt_token(user.id, user.username, user.role)
     
-    #create secure cookie with token
+    # create secure cookie with token
     try:
         response.set_cookie(
             key="access_token",
@@ -237,7 +237,7 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to set authentication cookie")
 
-    #return token and expiration time
+    # return token and expiration time
     return {"id": user.id, "username": user.username, "email": user.email}
 
 @app.post("/logout")
@@ -315,7 +315,7 @@ async def get_latest_posts(db: AsyncSession = Depends(get_db)):
         .limit(5)
     )
 
-    #format results to include post id, title, author username and created_at, but exclude content for performance
+    # format results to include post id, title, author username and created_at, but exclude content for performance
     rows = result.all()
     posts = []
     for post, username in rows:
