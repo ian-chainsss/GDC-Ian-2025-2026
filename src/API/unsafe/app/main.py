@@ -70,7 +70,7 @@ async def on_startup():
 @app.get("/")
 async def read_root(request: Request):
     """Root endpoint returning a welcome message and client IP address."""
-    return {"detail": "Hello, welcome to the Safe API! GDC research project by Ian-Chains Baute.", "client_host": request.client.host}
+    return {"detail": "Hello, welcome to the Unsafe API! GDC research project by Ian-Chains Baute.", "client_host": request.client.host}
 
 # -------- USER ENDPOINTS --------
 
