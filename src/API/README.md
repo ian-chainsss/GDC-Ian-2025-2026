@@ -57,16 +57,11 @@ Vul hierin de volgende environment variables in met de juiste waarden of pas aan
    ```
 
 10. Vervang `your_jwt_secret_key` in het `data.env` bestand met een sterke geheime sleutel voor het ondertekenen van JWT tokens.
-Gebruik het commaand `openssl rand -hex 32` om een veilige sleutel te genereren.
+Gebruik het commando `openssl rand -hex 32` om een veilige sleutel te genereren.
 Deze kan je vervolgens kopiëren en plakken in het `data.env` bestand.
 
 11. Voer het volgende commando uit om de Docker image te bouwen & Docker container te bouwen:  
 Zorg ervoor dat je in de directory bent waar het Dockerfile & compose file zich bevindt.
    ```bash
    docker compose up --build -d
-   ```
-
-12. Voor het herbouwen van de container na aanpassingen, voer je het volgende commando uit:
-   ```bash
-   docker compose build
    ```
