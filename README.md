@@ -39,36 +39,39 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 
 ---
 ### API
-- Safe API: https://safe-api.ian-chains.be/ - **active**
+- Safe API: https://safe-api.ian-chains.be/ - **active, changes following**
     - OPEN API DOCS: https://safe-api.ian-chains.be/docs
-- Unsafe API: https://unsafe-api.ian-chains.be/ - **inactive**
+- Unsafe API: https://unsafe-api.ian-chains.be/ - **In Development**
     - OPEN API DOCS: https://unsafe-api.ian-chains.be/docs
 
 ## Docker Container Setup
 Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden in het bestand `src/API/README.md`.
 
 ## Gebruikte Software
-### Development Software
+### Linux Software & Services
 - [Docker](https://www.docker.com/) - Containerization Software
 - [Portainer](https://www.portainer.io/) - Docker Management Software
 - [WireGuard](https://www.wireguard.com/) - VPN Software
 - [PostreSQL](https://www.postgresql.org/) - SQL Database
+- [Nginx Proxy Manager](https://nginxproxymanager.com/) - Reverse Proxy Software
+- [Cloudflare](https://www.cloudflare.com/) - DNS Provider & CDN Software
 
 ### Development Libraries API
 - [Python](https://www.python.org/) - Programming Language
 - [FastAPI](https://fastapi.tiangolo.com/) - Python API Framework
-- [PyTest](https://docs.pytest.org/en/stable/) - Python Code Testing
-- [PyLint](https://pypi.org/project/pylint/) - Python Code Checking
+- [SQLAlchemy](https://www.sqlalchemy.org/) - Python SQL Toolkit & Object Relational Mapper
+- [Pydantic](https://pydantic.dev/) - Data Validation Library
+- [Argon2](https://argon2-cffi.readthedocs.io/en/stable/) - Password Hashing Library
+- [PyJWT](https://pyjwt.readthedocs.io/en/stable/) - JSON Web Token Library
+- [Asyncpg](https://magicstack.github.io/asyncpg/current/) - Async PostgreSQL Client Library
 
 ### Development Libraries Frontend
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 - [DaisyUI](https://daisyui.com/) - Tailwind Component Library
-- [HyperUI](https://hyperui.dev/) - Tailwind Component Library
 
 ### Software Tools
 - [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
 - [HeidSQL](https://heidisql.com/) - SQL Client Software
-- [pgAdmin](https://www.pgadmin.org/) - PostgreSQL Management Software
 - [Postman](https://www.postman.com/) - API Testing & Collaboration Software
 - [HTTP Toolkit](https://httptoolkit.com/) - API Intercept Software
-- [Burp Suite Community Edition](https://portswigger.net/burp/communitydownload) - Pen Testing Software for HTTP Applications
+- [Github Copilot](https://github.com/features/copilot) - AI Code Assistant
