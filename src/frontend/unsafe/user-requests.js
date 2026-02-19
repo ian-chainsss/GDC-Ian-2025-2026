@@ -26,7 +26,7 @@ async function login_user(event) {
             return;
         }
 
-        succes_modal(`${response.status}`, `${"ID: " + result.id + "<br>Username: " + result.username + "<br>Email: " + result.email}`);
+        succes_modal(`${response.status}`, `${"User ID: " + result.id + "<br>Username: " + result.username + "<br>Email: " + result.email}`);
         return;
     } catch (error) {
         console.error(error);
@@ -88,9 +88,46 @@ async function register_user(event) {
             return;
         }
 
-        succes_modal(`${response.status}`, `${"ID: " + result.id + "<br>Username: " + result.username + "<br>Email: " + result.email}`);
+        succes_modal(`${response.status}`, `${"User ID: " + result.id + "<br>Username: " + result.username + "<br>Email: " + result.email}`);
         return;
 
+    } catch (error) {
+        console.error(error);
+        error_modal('Network error', error.message || String(error));
+    }
+}
+
+async function get_user_data(event) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+
+    const form = document.getElementById('user-data-form');
+    if (!form) return;
+
+    const userIdInput = form.querySelector('input[type="text"]');
+    const userId = userIdInput ? userIdInput.value.trim() : '';
+
+    const url = website + "users/" + userId;
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            error_modal(`${response.status}`, `${result.detail || result.message || JSON.stringify(result)}`);
+            return;
+        }
+
+        succes_modal(`${response.status}`, `${
+            "User ID: " + result.id
+            + "<br>User Role: " + result.role
+            + "<br>Username: " + result.username
+            + "<br>Email: " + result.email
+            + "<br>Updated At: " + new Date(result.updated_at).toLocaleString()
+            + "<br>Created At: " + new Date(result.created_at).toLocaleString()
+            + "<br>Password Hash: " + result.password_hash}`);
+        return;
     } catch (error) {
         console.error(error);
         error_modal('Network error', error.message || String(error));
