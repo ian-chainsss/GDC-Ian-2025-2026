@@ -1,9 +1,48 @@
+async function login_user(event) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+
+    const form = document.getElementById('user-login-form');
+    if (!form) return;
+
+    const username_or_email_input = form.querySelector('input[type="text"]');
+    const password_input = form.querySelector('input[type="password"]');
+
+    const username_or_email = username_or_email_input ? username_or_email_input.value.trim() : '';
+    const password = password_input ? password_input.value : '';
+
+    const url = website + "login";
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username_or_email, password }),
+            credentials: 'include'
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            error_modal(`${response.status}`, `${result.detail || result.message || JSON.stringify(result)}`);
+            return;
+        }
+
+        succes_modal(`${response.status}`, `${"ID: " + result.id + "<br>Username: " + result.username + "<br>Email: " + result.email}`);
+        return;
+    } catch (error) {
+        console.error(error);
+        error_modal('Network error', error.message || String(error));
+    }
+    
+}
+
+
 async function logout() {
     const url = website + "logout"
 
     try {
         const response = await fetch(url, {
             method: "POST",
+            credentials: 'include'
         });
         
         const result = await response.json();
