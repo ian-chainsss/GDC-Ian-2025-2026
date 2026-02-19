@@ -6,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="all-round.js"></script>
     <script src="user-requests.js"></script>
+    <script src="post-requests.js"></script>
 </head>
 
 <body>
@@ -20,7 +21,7 @@
       <li><a href="#user">User</a></li>
       <li><a href="#posts">Posts</a></li>
       <li><a href="#danger">Danger</a></li>
-      <li><a class="ml-25" href="https://safe-app.ian-chains.it">Safe Webapp</a></li>
+      <li><a class="ml-25" href="https://safe-app.ian-chains.be">Safe Webapp</a></li>
       <li><a href="https://github.com/GO-atheneum-De-Tandem/GDC-Ian-2025-2026">Github</a></li>
     </ul>
   </div>
@@ -200,8 +201,7 @@
 
         <form id="post-create-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="create_post(event); return false;">
             <fieldset>
-            <label class="input validator">
-                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor"> <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path> <circle cx="12" cy="7" r="4"></circle></g> </svg>
+            <label class="input validator w-3/4">
                 <input
                     type="text"
                     id="post-create-title"
@@ -213,7 +213,7 @@
             </fieldset>
             
             <fieldset>
-                <textarea required id="post-create-content" class="textarea input validator" placeholder="Content"></textarea>
+                <textarea required id="post-create-content" class="textarea input validator w-3/4" placeholder="Content"></textarea>
                 <p class="validator-hint hidden">Verplicht invullen</p>
             </fieldset>
 
@@ -276,7 +276,7 @@
         <div class="collapse-content text-sm">
             Klik op de knop hier onder om de database te leggen, je hebt admin permissies nodig om dit te doen.
         </div>
-        <button class="btn btn-warning mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]">Reset Database</button>
+        <button class="btn btn-warning mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]" onclick="reset_database()">Reset Database</button>
     </div>
 </div>
 
