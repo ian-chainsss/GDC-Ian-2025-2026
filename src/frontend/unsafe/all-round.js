@@ -18,6 +18,7 @@ async function test_connection() {
     try {
         const response = await fetch(url);
         const result = await response.json();
+        
         if (!response.ok) {
             error_modal(`${response.status}`, `${result.detail}`);
             return;
@@ -26,6 +27,23 @@ async function test_connection() {
         succes_modal(`${response.status}`, `${result.detail}`);
         return;
 
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+async function reset_database() {
+    const url = website + "reset"
+    
+    try {
+        const response = await fetch(url, { method: "POST", credentials: "include" });
+        const result = await response.json();
+
+        if (!response.ok) {
+            error_modal(`${response.status}`, `${result.detail}`);
+            return;
+        }
+        succes_modal(`${response.status}`, `${result.detail}`);
     } catch (error) {
         console.error(error.message);
     }
