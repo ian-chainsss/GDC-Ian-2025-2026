@@ -84,7 +84,7 @@
                     type="text"
                     required
                     placeholder="Username"
-                    pattern="[A-Za-z][A-Za-z0-9\-]*"
+                    pattern="[A-Za-z][A-Za-z0-9\-\_]*"
                     minlength="3"
                     maxlength="30"
                     title="Only letters, numbers or dash"
@@ -125,6 +125,35 @@
         <div class="collapse-content text-sm">
             Vul de velden in om in te loggen met een bestaande gebruiker.
         </div>
+
+            <form id="user-login-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="login_user(event); return false;">
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor"> <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path> <circle cx="12" cy="7" r="4"></circle></g> </svg>
+                <input
+                    type="text"
+                    required
+                    placeholder="Username or Email"
+                />
+            </label>
+            <p class="validator-hint hidden">Verplicht invullen</p>
+            </fieldset>
+            
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></g></svg>
+                <input
+                    type="password"
+                    required
+                    placeholder="Password"
+                />
+            </label>
+            <p class="validator-hint hidden">Verplicht invullen</p>
+            </fieldset>
+
+            <button class="btn btn-neutral mb-6 w-1/10 font-bold text-[16px]" type="submit">Login</button>
+        </form>
+
     </div>
 
     <div tabindex="3" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
@@ -141,6 +170,23 @@
             Haal de account informatie op van een specifieke gebruiker. <br>
             Vul de gebruiks ID in om de informatie van die gebruiker op te halen.
         </div>
+
+        <form id="user-data-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="get_user_data(event); return false;">
+            <fieldset>
+            <label class="input validator">
+                <input
+                    type="text"
+                    required
+                    placeholder="User ID"
+                    pattern="[0-9]*"
+                />
+            </label>
+            <p class="validator-hint hidden">Required, must be a user ID, a number.</p>
+            </fieldset>
+
+            <button class="btn btn-neutral mb-6 w-1/7 font-bold text-[16px]" type="submit">Lookup User</button>
+        </form>
+
     </div>
 
     <!-- Post Cards -->
@@ -151,6 +197,29 @@
         <div class="collapse-content text-sm">
             Vul de velden in om een nieuwe post aan te maken.
         </div>
+
+        <form id="post-create-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="create_post(event); return false;">
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor"> <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path> <circle cx="12" cy="7" r="4"></circle></g> </svg>
+                <input
+                    type="text"
+                    id="post-create-title"
+                    required
+                    placeholder="Title"
+                />
+            </label>
+            <p class="validator-hint hidden">Verplicht invullen</p>
+            </fieldset>
+            
+            <fieldset>
+                <textarea required id="post-create-content" class="textarea input validator" placeholder="Content"></textarea>
+                <p class="validator-hint hidden">Verplicht invullen</p>
+            </fieldset>
+
+            <button class="btn btn-neutral mb-6 w-1/7 font-bold text-[16px]" type="submit">Create Post</button>
+        </form>
+
     </div>
 
     <div tabindex="6" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
@@ -158,6 +227,13 @@
         <div class="collapse-content text-sm">
             Bekijk hieronder de 5 laatst aangemaakte posts.
         </div>
+
+        <div id="latest-posts" class="mx-6 my-4 hidden">
+
+        </div>
+
+        <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/8 font-bold text-[16px]" onclick="load_latest_posts()">Load Posts</button>
+
     </div>
 
     <div tabindex="7" class="my-6 w-2/5 pb-6 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
@@ -166,29 +242,30 @@
             Vul hieronder een zoekterm in om posts te zoeken die deze term bevatten.
         </div>
 
-        <div class="join ml-6 my-4">
-            <div>
-                <label class="input validator join-item w-120">
-                    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <g
-                        stroke-linejoin="round"
-                        stroke-linecap="round"
-                        stroke-width="2.5"
-                        fill="none"
-                        stroke="currentColor"
-                        >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                        </g>
-                    </svg>
-                    <input type="search" required placeholder="Search" />
-                </label>
+        <form id="post-search-form" onsubmit="search_posts(event); return false;">
+            <div class="join ml-6 my-4">
+                <div>
+                    <label class="input validator join-item w-120">
+                        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <g
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke-width="2.5"
+                            fill="none"
+                            stroke="currentColor"
+                            >
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                            </g>
+                        </svg>
+                        <input type="search" required placeholder="Search" />
+                    </label>
 
-                <div class="validator-hint hidden">Enter valid search term</div>
+                    <div class="validator-hint hidden">Enter valid search term</div>
+                </div>
+                <button class="btn btn-neutral join-item" type="submit">Search</button>
             </div>
-            <button class="btn btn-neutral join-item">Search</button>
-        </div>
-
+        </form>
     </div>
 
     <div id="danger" class="divider divider-neutral w-2/5 my-8"></div>
