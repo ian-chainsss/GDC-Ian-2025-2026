@@ -3,6 +3,7 @@
 from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 
 # database & ORM imports
@@ -42,10 +43,18 @@ app = FastAPI(
     },
 )
 
-# logging setup
+# logging setup behind proxy
 app.add_middleware(
     ProxyHeadersMiddleware,
     trusted_hosts="*"
+)
+
+# CORS setup for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # database connection test on startup
