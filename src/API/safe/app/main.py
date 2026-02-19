@@ -99,9 +99,13 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 @app.get("/users/{user_id}")
 async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
     """Retrieve a user by their ID from the database."""
-
+    
     result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first() # scalars() haalt alle kolommen op, first() haalt de eerste rij op
+    user = result.scalars().first()  # scalars() haalt alle kolommen op, first() haalt de eerste rij op
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     return user
 
 @app.post("/users", status_code=201)
