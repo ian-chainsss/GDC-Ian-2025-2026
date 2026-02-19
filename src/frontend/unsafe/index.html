@@ -1,8 +1,11 @@
 <html>
 <head>
-<title>Unsafe Webapp - GDC Ian-Chains</title>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <meta charset="UTF-8" />
+    <title>Unsafe Webapp - GDC Ian-Chains</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="all-round.js"></script>
+    <script src="user-requests.js"></script>
 </head>
 
 <body>
@@ -23,6 +26,35 @@
   </div>
 </div>
 
+<!-- You can open the modal using ID.showModal() method -->
+<dialog id="succes" class="modal">
+  <div class="modal-box bg-green-300 w-2/6 max-w-5xl">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+
+    <h3 id="succes-title" class="text-lg font-bold flex items-center">
+        Succes - ‎<span id="succes-subtitle"></span>
+    </h3>
+    <h4 id="succes-subtitle" class="text-lg font-bold"></h4>
+    <p id="succes-content" class="py-4">Press ESC key or click on ✕ button to close</p>
+  </div>
+</dialog>
+
+<dialog id="error" class="modal">
+  <div class="modal-box bg-red-300 w-2/6 max-w-5xl">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+
+    <h3 id="error-title" class="text-lg font-bold flex items-center">
+        Error - ‎<span id="error-subtitle"></span>
+    </h3>
+    
+    <p id="error-content" class="py-4">Press ESC key or click on ✕ button to close</p>
+  </div>
+</dialog>
+
 <!-- Content -->
 <div class="flex flex-col pl-10 py-8 w-full">
 
@@ -31,36 +63,79 @@
         <div class="collapse-content text-sm">
             Druk Op de knop hier onder om te testen of de frontend verbinding kan maken met de API.
         </div>
-        <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]">Test Connection</button>
+        <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]" onclick="test_connection()">Test Connection</button>
     </div>
 
     <!-- User Cards -->
     <div id="user" class="divider divider-neutral w-2/5 my-8"></div>
 
 
-    <div tabindex="0" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="1" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">User Registration</div>
         <div class="collapse-content text-sm">
             Vul de velden in om een nieuwe gebruiker aan te maken.
         </div>
+
+        <form id="user-registration-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="register_user(event); return false;">
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor"> <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path> <circle cx="12" cy="7" r="4"></circle></g> </svg>
+                <input
+                    type="text"
+                    required
+                    placeholder="Username"
+                    pattern="[A-Za-z][A-Za-z0-9\-]*"
+                    minlength="3"
+                    maxlength="30"
+                    title="Only letters, numbers or dash"
+                />
+            </label>
+            <p class="validator-hint hidden"> Must be 3 to 30 characters, containing only letters, numbers or dash</p>
+            </fieldset>
+
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></g></svg>
+                <input type="email" placeholder="mail@site.com" required />
+            </label>
+            <p class="validator-hint hidden">Enter valid email address</p>
+            </fieldset>
+            
+            <fieldset>
+            <label class="input validator">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></g></svg>
+                <input
+                    type="password"
+                    required
+                    placeholder="Password"
+                    minlength="8"
+                    title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+                />
+            </label>
+            <p class="validator-hint hidden">Must be more than 8 characters.</p>
+            </fieldset>
+
+            <button class="btn btn-neutral mb-6 w-1/10 font-bold text-[16px]" type="submit">Sign Up</button>
+        </form>
+
     </div>
 
-    <div tabindex="1" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="2" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">User Login</div>
         <div class="collapse-content text-sm">
             Vul de velden in om in te loggen met een bestaande gebruiker.
         </div>
     </div>
 
-    <div tabindex="2" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="3" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">User Logout</div>
         <div class="collapse-content text-sm">
             Druk op de knop hier onder om uit te loggen.
         </div>
-        <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/10 font-bold text-[16px]">Logout</button>
+        <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/10 font-bold text-[16px]" onclick="logout()">Logout</button>
     </div>
 
-    <div tabindex="3" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="4" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">User Info</div>
         <div class="collapse-content text-sm">
             Haal de account informatie op van een specifieke gebruiker. <br>
@@ -71,21 +146,21 @@
     <!-- Post Cards -->
     <div id="posts" class="divider divider-neutral w-2/5 my-8"></div>
 
-    <div tabindex="0" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="5" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">Post Creation</div>
         <div class="collapse-content text-sm">
             Vul de velden in om een nieuwe post aan te maken.
         </div>
     </div>
 
-    <div tabindex="0" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="6" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">Latest Posts</div>
         <div class="collapse-content text-sm">
             Bekijk hieronder de 5 laatst aangemaakte posts.
         </div>
     </div>
 
-    <div tabindex="0" class="my-6 w-2/5 pb-6 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
+    <div tabindex="7" class="my-6 w-2/5 pb-6 collapse collapse-open bg-base-100 border-base-300 border border-gray-800">
         <div class="collapse-title font-semibold">Post Search</div>
         <div class="collapse-content text-sm">
             Vul hieronder een zoekterm in om posts te zoeken die deze term bevatten.
@@ -119,7 +194,7 @@
     <div id="danger" class="divider divider-neutral w-2/5 my-8"></div>
 
     <!-- Database Reset -->
-    <div tabindex="4" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border bg-red-700 text-white">
+    <div tabindex="8" class="my-6 w-2/5 collapse collapse-open bg-base-100 border-base-300 border bg-red-700 text-white">
         <div class="collapse-title font-semibold">Danger Zone - Database Reset</div>
         <div class="collapse-content text-sm">
             Klik op de knop hier onder om de database te leggen, je hebt admin permissies nodig om dit te doen.
