@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr
 
 # logging & authentication imports
-from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt
+from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt, has_level_access_by_db
 from typing import Optional
 import logging
 
@@ -385,7 +385,7 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
 
     # Verify JWT and access level
     payload = await verify_jwt_token(request)
-    await has_level_access_by_jwt(payload, 1)
+    await has_level_access_by_db(payload, 1)
 
     # Perform truncate of known tables while keeping schema and resetting identities
     try:
@@ -397,7 +397,7 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
         await db.rollback()
         raise HTTPException(status_code=500, detail="Could not reset database")
 
-    redirect = RedirectResponse(url="/", status_code=303)
+    redirect = RedirectResponse(url="https://safe-app.ian-chains.be", status_code=302)
     # Remove authentication cookie
     try:
         redirect.delete_cookie(key="access_token")
