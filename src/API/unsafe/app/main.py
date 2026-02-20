@@ -329,13 +329,18 @@ async def get_latest_posts(db: AsyncSession = Depends(get_db)):
         .limit(5)
     )
 
-    # format results to include post id, title, author username and created_at, but exclude content for performance
+    # format results to include post id, title, content, author username and created_at
     rows = result.all()
+    # If no posts are found, return a 404 to signal empty result set
+    if not rows:
+        raise HTTPException(status_code=404, detail="No posts found")
     posts = []
     for post, username in rows:
         posts.append({
             "id": post.id,
             "title": post.title,
+            "content": post.content,
+            "content_mime": post.content_mime,
             "author_id": post.author_id,
             "author": username,
             "created_at": post.created_at,
