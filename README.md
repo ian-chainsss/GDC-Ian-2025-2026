@@ -73,6 +73,7 @@ Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden 
 ### Development Libraries Frontend
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 - [DaisyUI](https://daisyui.com/) - Tailwind Component Library
+- [HyperUI](https://hyperui.dev/) - Tailwind Component Library
 
 ### Software Tools
 - [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
