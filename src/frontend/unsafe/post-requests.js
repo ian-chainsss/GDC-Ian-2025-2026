@@ -94,7 +94,7 @@ async function load_latest_posts() {
             const content = document.createElement('p');
             content.className = 'mt-2 text-sm/relaxed text-gray-800';
             // content may contain HTML; keep as-is
-            content.innerHTML = post.content || '';
+            content.innerHTML = post.content;
 
             inner.appendChild(author);
             inner.appendChild(timeEl);
@@ -108,6 +108,90 @@ async function load_latest_posts() {
 
         container.classList.remove('hidden');
         succes_modal(`${response.status}`, `${posts.length} post(s) loaded!`);
+    } catch (error) {
+        console.error(error);
+        error_modal('Network error', error.message || String(error));
+        container.classList.add('hidden');
+    }
+}
+
+async function search_posts(event) {
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+    }
+
+    const form = document.getElementById('post-search-form');
+    const input = form ? form.querySelector('input[type="search"]') : null;
+    const q = input ? input.value.trim() : '';
+
+    const container = document.getElementById('latest-posts-search');
+    const url = website + "posts/search?q=" + encodeURIComponent(q);
+
+    if (!container) return;
+    container.classList.add('hidden');
+    container.innerHTML = '';
+
+    try {
+        const response = await fetch(url, { method: 'GET'});
+        const data = await response.json();
+
+        // Show the query returned by the API (falls back to request `q`)
+        const queryEl = document.getElementById('post-search-query');
+        const queryContentEl = document.getElementById('post-search-query-content');
+        const apiQuery = data.query;
+        queryContentEl.innerHTML = apiQuery;
+
+        if (queryEl) {
+            queryEl.classList.remove('hidden');
+        }
+
+        if (!response.ok) {
+            const message = data?.detail || data?.message || response.statusText || JSON.stringify(data);
+            error_modal(`${response.status}`, message);
+            container.classList.add('hidden');
+            return;
+        }
+
+        const results = Array.isArray(data?.results) ? data.results : [];
+
+        if (!results.length) {
+            error_modal('No posts', 'No posts found');
+            container.classList.add('hidden');
+            return;
+        }
+
+        results.forEach(post => {
+            const article = document.createElement('article');
+            article.className = 'border-base-300 border w-2/3 border-gray-300 rounded-md outline-solid outline-gray-300 outline-1 mb-4';
+
+            const inner = document.createElement('div');
+            inner.className = 'bg-base-100 p-4';
+
+            const author = document.createElement('p');
+            author.className = 'block text-xs text-gray-500';
+            author.textContent = post.author || (`Author ${post.author_id || ''}`);
+
+            const timeEl = document.createElement('time');
+            timeEl.className = 'block text-xs text-gray-500';
+            try { timeEl.textContent = new Date(post.created_at).toLocaleString(); } catch (_) { timeEl.textContent = '' }
+
+            const br = document.createElement('br');
+
+            const title = document.createElement('h2');
+            title.className = 'card-title';
+            title.textContent = post.title || '';
+
+            inner.appendChild(author);
+            inner.appendChild(timeEl);
+            inner.appendChild(br);
+            inner.appendChild(title);
+
+            article.appendChild(inner);
+            container.appendChild(article);
+        });
+
+        container.classList.remove('hidden');
+        succes_modal(`${response.status}`, `${results.length} result(s) for "${q}"`);
     } catch (error) {
         console.error(error);
         error_modal('Network error', error.message || String(error));
