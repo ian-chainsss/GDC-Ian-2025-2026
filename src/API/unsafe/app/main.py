@@ -411,12 +411,11 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
         await db.rollback()
         raise HTTPException(status_code=500, detail="Could not reset database")
 
-    redirect = RedirectResponse(url="https://unsafe-app.ian-chains.be/", status_code=302)
     # Remove authentication cookie
     try:
-        redirect.delete_cookie(key="access_token")
+        response.delete_cookie(key="access_token")
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
 
     # Return HTML that reloads the page on the client
-    return redirect
+    return response
