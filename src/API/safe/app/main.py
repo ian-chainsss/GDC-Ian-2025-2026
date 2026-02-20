@@ -2,7 +2,7 @@
 # api imports
 from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 
 # database & ORM imports
@@ -369,6 +369,8 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(stmt)
     rows = result.all()
+    if not rows:
+        return JSONResponse(status_code=404, content={"detail": "No posts found", "query": q})
 
     # format results to include post id, title, author username and created_at, but exclude content for performance
     posts = []
