@@ -248,6 +248,7 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
         response.set_cookie(
             key="access_token",
             value=token,
+            domain=settings.COOKIE_DOMAIN,
             httponly=True,
             secure=True,
             samesite="Strict",
@@ -267,7 +268,7 @@ async def logout(request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
-        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="access_token", domain=settings.COOKIE_DOMAIN)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
     return {"detail": "Logged out successfully"}
@@ -420,7 +421,7 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
 
     # Remove authentication cookie
     try:
-        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="access_token", domain=settings.COOKIE_DOMAIN)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
 

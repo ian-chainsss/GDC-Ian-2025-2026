@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     HASH_PARALLELISM: int = int(getenv("HASH_PARALLELISM", 4))
     HASH_SALT_LENGTH: int = int(getenv("HASH_SALT_LENGTH", 16))
     HASH_HASH_LENGTH: int = int(getenv("HASH_HASH_LENGTH", 32))
+
+    # Cookie settings
+    COOKIE_DOMAIN: str = getenv("COOKIE_DOMAIN", "ian-chains.be")
     
 settings = Settings()
 # gebruik settings.DB_HOST etc.

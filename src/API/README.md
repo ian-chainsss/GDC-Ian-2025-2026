@@ -54,6 +54,13 @@ Vul hierin de volgende environment variables in met de juiste waarden of pas aan
    JWT_SECRET=your_jwt_secret_key
    JWT_ALGORITHM=HS256
    JWT_EXP_MINUTES=15
+   HASH_TIME_COST=2
+   HASH_MEMORY_COST=102400
+   HASH_PARALLELISM=4
+   HASH_SALT_LENGTH=16
+   HASH_HASH_LENGTH=32
+
+   COOKIE_DOMAIN=your_cookie_domain
    ```
 
 10. Vervang `your_jwt_secret_key` in het `data.env` bestand met een sterke geheime sleutel voor het ondertekenen van JWT tokens.
