@@ -34,14 +34,19 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 
 ## Toegang tot webapp & API
 ### Webapp & frontend
-- Safe App: https://safe-app.ian-chains.be/ - **inactive**
-- Unsafe App: https://unsafe-app.ian-chains.be/ - **In Development**
+- Safe App: https://safe-app.ian-chains.be/ - **Active**
+- Unsafe App: https://unsafe-app.ian-chains.be/ - **Active**
+
+---
+### Webapp Attacker - CSRF Attacks
+- Using Safe API: https://attacker-safe.yourwebmaster.be/ - **inactive**
+- Using Unsafe API: https://attacker-unsafe.yourwebmaster.be/ - **inactive**
 
 ---
 ### API
-- Safe API: https://safe-api.ian-chains.be/ - **active, changes following**
+- Safe API: https://safe-api.ian-chains.be/ - **Active**
     - OPEN API DOCS: https://safe-api.ian-chains.be/docs
-- Unsafe API: https://unsafe-api.ian-chains.be/ - **In Development**
+- Unsafe API: https://unsafe-api.ian-chains.be/ - **Active**
     - OPEN API DOCS: https://unsafe-api.ian-chains.be/docs
 
 ## Docker Container Setup
