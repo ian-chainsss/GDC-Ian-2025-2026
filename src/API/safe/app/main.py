@@ -3,6 +3,7 @@
 from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 
 # database & ORM imports
@@ -47,6 +48,19 @@ app = FastAPI(
 app.add_middleware(
     ProxyHeadersMiddleware,
     trusted_hosts="*"
+)
+
+origins = [
+    "https://safe-app.ian-chains.be",
+]
+
+#CORS Setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # database connection test on startup
