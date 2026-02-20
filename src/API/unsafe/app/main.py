@@ -245,7 +245,7 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
             value=token,
             httponly=True,
             secure=True,
-            samesite="Strict",
+            samesite="None",
             max_age=settings.JWT_EXP_MINUTES * 60
         )
     except Exception:
