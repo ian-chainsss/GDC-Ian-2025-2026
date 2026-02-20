@@ -198,3 +198,22 @@ async function search_posts(event) {
         container.classList.add('hidden');
     }
 }
+
+// On page load: if URL contains a `q` parameter, populate the search input and run `search_posts()`
+window.addEventListener('DOMContentLoaded', () => {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const qParam = params.get('q');
+        if (qParam) {
+            const form = document.getElementById('post-search-form');
+            const input = form ? form.querySelector('input[type="search"]') : null;
+            if (input) {
+                input.value = qParam;
+            }
+            // call search_posts without an event; the function will read the input value
+            try { search_posts(); } catch (e) { console.error('search_posts auto-run failed', e); }
+        }
+    } catch (e) {
+        console.error('Error parsing URL search params', e);
+    }
+});
