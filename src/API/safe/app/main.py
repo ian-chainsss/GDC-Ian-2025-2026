@@ -492,4 +492,4 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
 
     # Return HTML that reloads the page on the client
-    return response
+    return {"detail": "Database reset successfully"}
