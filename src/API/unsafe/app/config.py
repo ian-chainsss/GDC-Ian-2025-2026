@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     DB_ECHO_QUERIES: bool = getenv("DB_ECHO_QUERIES", "true").lower() in ("true", "1", "yes")
     
     # JWT settings
-    JWT_SECRET: str = getenv("JWT_SECRET", "change-this-secret")
+    JWT_SECRET: str = getenv("JWT_SECRET", "9055379cfcec6207cb7b9a5cc064c9ae418a43f97f5f92f33bd8efb2c911c2d2")
     JWT_ALGORITHM: str = getenv("JWT_ALGORITHM", "HS256")
     JWT_EXP_MINUTES: int = int(getenv("JWT_EXP_MINUTES", 15))
 
