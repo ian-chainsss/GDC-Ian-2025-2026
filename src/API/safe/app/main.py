@@ -4,19 +4,18 @@ from app.config import description, settings
 from fastapi import FastAPI, Depends, Request, HTTPException, Response, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta
 
 # database & ORM imports
-from app.database import get_db
-from app.database import AsyncSessionLocal
+from app.database import get_db, AsyncSessionLocal
 import app.models as models
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, text
 from sqlalchemy.exc import IntegrityError
 
-# pydantic imports
+# pydantic imports & other typing imports
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Annotated
+from datetime import datetime, timedelta
 
 # logging & authentication imports
 from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt, has_level_access_by_db
