@@ -8,3 +8,4 @@ asyncpg
 logging
 argon2-cffi
 pyjwt
+markupsafe

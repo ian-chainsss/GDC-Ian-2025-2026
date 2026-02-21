@@ -13,7 +13,7 @@ from sqlalchemy import select, or_, text
 from sqlalchemy.exc import IntegrityError
 
 # pydantic imports & other typing imports
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, Annotated
 from datetime import datetime, timedelta
 
@@ -23,6 +23,9 @@ import logging
 
 # proxy middleware import
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
+# html escape import for safe content handling
+from markupsafe import escape
 
 # -------- SETUP & CONFIGURATION --------
 
@@ -94,6 +97,11 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        return str(escape(v.strip()))
+
 class UserUpdate(BaseModel):
     """Model for updating an existing user. Only provided fields will be changed."""
     username: Optional[str] = None
@@ -102,6 +110,11 @@ class UserUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, value):
+        return str(escape(value.strip())) if value else None
 
 class UserOut(BaseModel):
     """Model for user output data."""
@@ -346,6 +359,11 @@ class PostCreate(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_validator('title', 'content')
+    @classmethod
+    def validate_content(cls, value):
+        return str(escape(value.strip()))
+
 @app.post("/posts", status_code=201)
 async def create_post(post: Annotated[PostCreate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Create a new post. Requires valid JWT and at least level 9 access."""
@@ -432,6 +450,7 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Missing or empty 'q' parameter")
 
     # split query into terms, remove extra spaces
+    q = str(escape(q.strip()))
     terms = [t.strip() for t in q.split() if t.strip()]
     if not terms:
         raise HTTPException(status_code=400, detail="Invalid 'q' parameter")
