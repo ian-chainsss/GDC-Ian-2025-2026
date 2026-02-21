@@ -43,7 +43,6 @@
             } catch (error) {
                 console.error(error);
                 set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
-                error_modal('Network error', error.message || String(error));
             }
         }
 
