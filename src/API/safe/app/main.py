@@ -112,7 +112,7 @@ class UserOut(BaseModel):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
     
 @app.get("/users", response_model=list[UserOut])
 async def get_users(db: AsyncSession = Depends(get_db)):
