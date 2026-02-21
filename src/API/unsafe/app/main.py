@@ -1,7 +1,7 @@
 # -------- IMPORTS --------
 # api imports
 from app.config import description, settings
-from fastapi import FastAPI, Depends, Request, HTTPException, Response
+from fastapi import FastAPI, Depends, Request, HTTPException, Response, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
@@ -16,10 +16,10 @@ from sqlalchemy.exc import IntegrityError
 
 # pydantic imports
 from pydantic import BaseModel, EmailStr
+from typing import Optional, Annotated
 
 # logging & authentication imports
 from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt, has_level_access_by_db
-from typing import Optional
 import logging
 
 # proxy middleware import
@@ -92,10 +92,12 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     """Model for updating an existing user. Only provided fields will be changed."""
-    id: int
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+
+    class Config:
+        from_attributes = True
     
 @app.get("/users")
 async def get_users(db: AsyncSession = Depends(get_db)):
@@ -153,19 +155,12 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "created_at": new_user.created_at}
 
 @app.post("/update/users", status_code=200)
-async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Depends(get_db)):
+async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. POST VERSION User must be authenticated and match the JWT subject."""
 
     # verify token and ensure user is same as token subject
     payload = await verify_jwt_token(request)
-    sub = payload.get("sub")
-    try:
-        auth_user_id = int(sub)
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Invalid authentication token")
-
-    if auth_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Cannot modify another user's data")
+    sub = int(payload.get("sub"))
 
     # Validate provided fields (only validate fields that are provided)
     if user.password is not None and len(user.password) < 8:
@@ -180,7 +175,7 @@ async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Dep
     if user.email:
         conflict_filters.append(models.User.email == user.email)
     if conflict_filters:
-        result = await db.execute(select(models.User).where(or_(*conflict_filters)).where(models.User.id != user.id))
+        result = await db.execute(select(models.User).where(or_(*conflict_filters)).where(models.User.id != sub))
         existing = result.scalars().first()
         if existing:
             if user.username and existing.username == user.username:
@@ -189,7 +184,7 @@ async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Dep
                 raise HTTPException(status_code=409, detail="Email already exists")
 
     # Fetch the user to update
-    result = await db.execute(select(models.User).where(models.User.id == user.id))
+    result = await db.execute(select(models.User).where(models.User.id == sub))
     db_user = result.scalars().first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -216,19 +211,12 @@ async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Dep
     return {"id": db_user.id, "username": db_user.username, "email": db_user.email}
 
 @app.put("/users", status_code=200)
-async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Depends(get_db)):
+async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. PUT VERSION User must be authenticated and match the JWT subject."""
 
     # verify token and ensure user is same as token subject
     payload = await verify_jwt_token(request)
-    sub = payload.get("sub")
-    try:
-        auth_user_id = int(sub)
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Invalid authentication token")
-
-    if auth_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Cannot modify another user's data")
+    sub = int(payload.get("sub"))
 
     # Validate provided fields (only validate fields that are provided)
     if user.password is not None and len(user.password) < 8:
@@ -243,7 +231,7 @@ async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Dep
     if user.email:
         conflict_filters.append(models.User.email == user.email)
     if conflict_filters:
-        result = await db.execute(select(models.User).where(or_(*conflict_filters)).where(models.User.id != user.id))
+        result = await db.execute(select(models.User).where(or_(*conflict_filters)).where(models.User.id != sub))
         existing = result.scalars().first()
         if existing:
             if user.username and existing.username == user.username:
@@ -252,7 +240,7 @@ async def update_user(user: UserUpdate, request: Request, db: AsyncSession = Dep
                 raise HTTPException(status_code=409, detail="Email already exists")
 
     # Fetch the user to update
-    result = await db.execute(select(models.User).where(models.User.id == user.id))
+    result = await db.execute(select(models.User).where(models.User.id == sub))
     db_user = result.scalars().first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -339,8 +327,11 @@ class PostCreate(BaseModel):
     content: str
     content_mime: Optional[str] = 'text/html'
 
+    class Config:
+        from_attributes = True
+
 @app.post("/posts", status_code=201)
-async def create_post(post: PostCreate, request: Request, db: AsyncSession = Depends(get_db)):
+async def create_post(post: Annotated[PostCreate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Create a new post. Requires valid JWT and at least level 9 access."""
 
     # Verify JWT from cookie
