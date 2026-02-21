@@ -7,17 +7,20 @@ async function create_post(event) {
     const titleInput = form.querySelector('input[type="text"]');
     const contentInput = form.querySelector('#post-create-content');
 
-    const title = titleInput ? titleInput.value.trim() : '';
-    const content = contentInput ? contentInput.value.trim() : '';
+    const title_input = titleInput ? titleInput.value.trim() : '';
+    const content_input = contentInput ? contentInput.value.trim() : '';
 
     const url = website + "posts";
 
     try {
         const response = await fetch(url, {
             method: "POST",
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': "application/x-www-form-urlencoded" },
             credentials: 'include',
-            body: JSON.stringify({ title, content })
+            body: new URLSearchParams({
+                title: title_input,
+                content: content_input
+            })
         });
 
         const result = await response.json();
