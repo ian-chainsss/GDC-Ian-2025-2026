@@ -14,10 +14,14 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 > Documentatie is te vinden bij `/docs/Official/`
 
 - XSS - Cross-Site Scripting
+    - Stored XSS
+    - Reflected XSS
+    - Escaping User Input
+    - Stripping User Input
 - CSRF - Cross-Site Request Forgery
-- Improper Input Validation
-    - Injection Attacks (SQL Injection)
-    - IDOR - Insecure Direct Object Reference
+    - SOP & CORS - Same Origin Policy & Cross-Origin Resource Sharing
+    - CSRF Tokens for protection
+    - Misconfigured CORS - Cross-Origin Resource Sharing
 
 ---
 ### Extra Onderzoek
@@ -27,10 +31,11 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 > Deze onderwerpen komen niet aan bod in de GDC (paper of presentatie).  
 > Documentatie is te vinden onder `/docs/Extra/`
 - Lack of Rate Limiting
-- Misconfigured CORS - Cross-Origin Resource Sharing
+- CSP - Content Security Policy
 - Insufficient Logging & Monitoring (malicious activities go unnoticed)
 - Excessive Data Exposure
 - BOLA - Broken Object Level Authorization
+- IDOR - Insecure Direct Object Reference
 
 ## Toegang tot webapp & API
 ### Webapp & frontend
@@ -39,8 +44,8 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 
 ---
 ### Webapp Attacker - CSRF Attacks
-- Using Safe API: https://attacker-safe.yourwebmaster.be/ - **inactive**
-- Using Unsafe API: https://attacker-unsafe.yourwebmaster.be/ - **inactive**
+- Using Safe API: https://attacker-safe.yourwebmaster.be/ - **Active**
+- Using Unsafe API: https://attacker-unsafe.yourwebmaster.be/ - **Active**
 
 ---
 ### API
