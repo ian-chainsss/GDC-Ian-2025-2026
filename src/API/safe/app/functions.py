@@ -73,7 +73,7 @@ async def create_jwt_token(user_id: int, username: str, role: int):
 async def verify_jwt_token(request: Request):
     """Verify a JWT token from the request. Returns the decoded payload dict if valid, otherwise raises HTTPException."""
     
-    token = request.cookies.get("access_token")
+    token = request.cookies.get(settings.COOKIE_KEY)
     if not token:
         raise HTTPException(status_code=401, detail="Authentication token missing")
 
