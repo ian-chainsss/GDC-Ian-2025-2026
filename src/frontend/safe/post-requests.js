@@ -184,11 +184,17 @@ async function search_posts(event) {
             title.className = 'card-title';
             title.textContent = post.title || '';
 
+            const content = document.createElement('p');
+            content.className = 'mt-2 text-sm/relaxed text-gray-800';
+            // content may contain HTML; keep as-is
+            content.innerHTML = post.content;
+
             inner.appendChild(author);
             inner.appendChild(timeEl);
             inner.appendChild(br);
             inner.appendChild(title);
-
+            inner.appendChild(content);
+            
             article.appendChild(inner);
             container.appendChild(article);
         });

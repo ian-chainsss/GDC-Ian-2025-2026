@@ -405,7 +405,7 @@ async def get_latest_posts(db: AsyncSession = Depends(get_db)):
 
 @app.get("/posts/search")
 async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
-    """Search posts by title. Returns list of posts with id, title, author and created_at.
+    """Search posts by title. Returns list of posts with id, title, content, content_mime, author and created_at.
 
     - `q`: zoekterm(en), spaties splitsen in woorden
     """
@@ -435,12 +435,14 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
     if not rows:
         return JSONResponse(status_code=404, content={"detail": "No posts found", "query": q})
 
-    # format results to include post id, title, author username and created_at, but exclude content for performance
+    # format results to include post id, title, content, content_mime, author username and created_at
     posts = []
     for post, username in rows:
         posts.append({
             "id": post.id,
             "title": post.title,
+            "content": post.content,
+            "content_mime": post.content_mime,
             "author": username,
             "created_at": post.created_at,
         })
