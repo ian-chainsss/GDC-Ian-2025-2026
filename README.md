@@ -38,6 +38,13 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 - IDOR - Insecure Direct Object Reference
 
 ## Toegang tot webapp & API
+Neem zeker eens een kijkje op de webapp en API's die ik heb opgezet voor het testen van de verschillende beveiligingsproblemen.  
+Maak gerust een account aan en test gerust bepaalde zaken uit en probeer de beveiligingsproblemen te vinden.
+
+**Let op:** Als je wisselt van de ene webapp naar de andere, vergeet dan niet eerst uit te loggen voordat je inlogt op de andere webapp, anders kunnen er problemen ontstaan met de cookies en sessies.  
+Je moet gewoon opnieuw inloggen op de andere webapp, de login gegevens zijn wel hetzelfde en gesynchroniseerd tussen de twee apps.  
+De reden hiervoor is dat de Safe App en Unsafe App dezelfde access_token cookie gebruiken, maar de signuture van deze cookie is verschillend tussen de twee apps.  
+
 ### Webapp & frontend
 - Safe App: https://safe-app.ian-chains.be/ - **Active**
 - Unsafe App: https://unsafe-app.ian-chains.be/ - **Active**
@@ -50,9 +57,9 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 ---
 ### API
 - Safe API: https://safe-api.ian-chains.be/ - **Active**
-    - OPEN API DOCS: https://safe-api.ian-chains.be/docs
+    - OpenAPI DOCS: https://safe-api.ian-chains.be/docs
 - Unsafe API: https://unsafe-api.ian-chains.be/ - **Active**
-    - OPEN API DOCS: https://unsafe-api.ian-chains.be/docs
+    - OpenAPI DOCS: https://unsafe-api.ian-chains.be/docs
 
 ## Docker Container Setup
 Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden in het bestand `src/API/README.md`.
