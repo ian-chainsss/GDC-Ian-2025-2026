@@ -291,7 +291,7 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
     # create secure cookie with token
     try:
         response.set_cookie(
-            key="access_token",
+            key=settings.COOKIE_KEY,
             value=token,
             domain=settings.COOKIE_DOMAIN,
             httponly=False,
@@ -308,12 +308,12 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
 @app.post("/logout")
 async def logout(request: Request, response: Response):
     """Logout user by clearing the authentication cookie."""
-    jwt = request.cookies.get("access_token")
+    jwt = request.cookies.get(settings.COOKIE_KEY)
     if not jwt:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
-        response.delete_cookie(key="access_token", domain=settings.COOKIE_DOMAIN)
+        response.delete_cookie(key=settings.COOKIE_KEY, domain=settings.COOKIE_DOMAIN)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
     return {"detail": "Logged out successfully"}
@@ -471,7 +471,7 @@ async def reset_database(request: Request, response: Response, db: AsyncSession 
 
     # Remove authentication cookie
     try:
-        response.delete_cookie(key="access_token", domain=settings.COOKIE_DOMAIN)
+        response.delete_cookie(key=settings.COOKIE_KEY, domain=settings.COOKIE_DOMAIN)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to clear authentication cookie")
 

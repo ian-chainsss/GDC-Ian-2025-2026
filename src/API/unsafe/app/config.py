@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     # Cookie settings
     COOKIE_DOMAIN: str = getenv("COOKIE_DOMAIN", "ian-chains.be")
+    COOKIE_KEY: str = getenv("COOKIE_KEY", "access_token_unsafe")
     
 settings = Settings()
 # gebruik settings.DB_HOST etc.
