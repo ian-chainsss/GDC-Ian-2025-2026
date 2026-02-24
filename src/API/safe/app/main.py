@@ -404,6 +404,8 @@ async def get_post_by_id(post_id: int, db: AsyncSession = Depends(get_db)):
     post = result.scalars().first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    
+    post.content = str(escape(post.content)) if post.content else None
     return post
 
 @app.get("/posts")
@@ -428,7 +430,7 @@ async def get_latest_posts(db: AsyncSession = Depends(get_db)):
         posts.append({
             "id": post.id,
             "title": post.title,
-            "content": post.content,
+            "content": str(escape(post.content)) if post.content else None,
             "content_mime": post.content_mime,
             "author_id": post.author_id,
             "author": username,
@@ -477,7 +479,7 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
         posts.append({
             "id": post.id,
             "title": post.title,
-            "content": post.content,
+            "content": str(escape(post.content)) if post.content else None,
             "content_mime": post.content_mime,
             "author": username,
             "created_at": post.created_at,
