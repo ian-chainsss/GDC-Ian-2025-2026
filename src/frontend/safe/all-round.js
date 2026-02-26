@@ -1,4 +1,28 @@
 const website = "https://safe-api.ian-chains.be/";
+const CSRF_COOKIE_NAME = "csrf_token";
+const CSRF_HEADER_NAME = "X-CSRF-Token";
+
+function get_csrf_token() {
+    const match = document.cookie.match(new RegExp('(?:^|; )' + CSRF_COOKIE_NAME + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function ensure_csrf_token() {
+    if (!get_csrf_token()) {
+        try {
+            const response = await fetch(website + "csrf-token", { credentials: 'include' });
+            if (!response.ok) {
+                console.error("Failed to fetch CSRF token:", response.status);
+            }
+        } catch (error) {
+            console.error("Error fetching CSRF token:", error.message);
+        }
+    }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await ensure_csrf_token();
+});
 
 async function error_modal(title, content) {
     document.getElementById("error-subtitle").innerHTML = title;
@@ -36,7 +60,12 @@ async function reset_database() {
     const url = website + "reset"
     
     try {
-        const response = await fetch(url, { method: "POST", credentials: "include" });
+        await ensure_csrf_token();
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "include",
+            headers: { [CSRF_HEADER_NAME]: get_csrf_token() }
+        });
         const result = await response.json();
 
         if (!response.ok) {
