@@ -91,7 +91,7 @@ async def verify_jwt_token(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Token verification failed") from e
 
-async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
+async def has_level_access_by_jwt(payload: dict, level: int) -> None:
     """Check whether the given JWT payload grants user access."""
 
     if not isinstance(payload, dict) or level is None:
@@ -108,7 +108,7 @@ async def has_level_access_by_jwt(payload: dict, level: int) -> bool:
     if not role_int <= level:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
-async def has_level_access_by_db(payload: dict, level: int) -> bool:
+async def has_level_access_by_db(payload: dict, level: int) -> None:
     """Check whether the user identified in `payload` has access by querying the DB."""
 
     # Validate payload and extract user ID
@@ -141,19 +141,19 @@ async def has_level_access_by_db(payload: dict, level: int) -> bool:
     if not role_int <= level:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
-def create_csrf_token() -> str:
+async def create_csrf_token() -> str:
     """Create a signed stateless CSRF token using itsdangerous. Returns the token string."""
 
     s = URLSafeTimedSerializer(settings.JWT_SECRET)
     random_value = secrets.token_hex(32)
     return s.dumps(random_value)
 
-def verify_csrf_token(request: Request) -> None:
+async def verify_csrf_token(request: Request) -> None:
     """Verify the CSRF token via double submit (cookie + X-CSRF-Token header).
     Raises HTTPException if the token is missing, mismatched, expired or has an invalid signature."""
 
     cookie_token = request.cookies.get(settings.CSRF_COOKIE_KEY)
-    header_token = request.headers.get("X-CSRF-Token")
+    header_token = request.headers.get(settings.CSRF_TOKEN_HEADER_KEY)
 
     if not cookie_token or not header_token:
         raise HTTPException(status_code=403, detail="CSRF token missing")
@@ -163,7 +163,7 @@ def verify_csrf_token(request: Request) -> None:
 
     s = URLSafeTimedSerializer(settings.JWT_SECRET)
     try:
-        s.loads(cookie_token, max_age=settings.JWT_EXP_MINUTES * 60)
+        s.loads(cookie_token, max_age=settings.CSRF_EXP_MINUTES * 60)
     except SignatureExpired:
         raise HTTPException(status_code=403, detail="CSRF token expired")
     except BadSignature:
