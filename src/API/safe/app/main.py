@@ -98,7 +98,7 @@ async def get_csrf_token(response: Response):
         key=settings.CSRF_COOKIE_KEY,
         value=token,
         domain=settings.COOKIE_DOMAIN,
-        httponly=False,  # must be readable by JavaScript so the client can send it back in the X-CSRF-Token header
+        httponly=False,
         secure=True,
         samesite="Strict",
         max_age=settings.CSRF_EXP_MINUTES * 60,
