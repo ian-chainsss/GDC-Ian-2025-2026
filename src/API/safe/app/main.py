@@ -18,7 +18,7 @@ from typing import Optional, Annotated
 from datetime import datetime, timedelta
 
 # logging & authentication imports
-from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt, has_level_access_by_db
+from app.functions import create_password_hash, verify_password, check_user_requirements, create_jwt_token, verify_jwt_token, has_level_access_by_jwt, has_level_access_by_db, create_csrf_token, verify_csrf_token
 import logging
 
 # proxy middleware import
@@ -89,6 +89,22 @@ async def read_root(request: Request):
     """Root endpoint returning a welcome message and client IP address."""
     return {"detail": "Hello, welcome to the Safe API! GDC research project by Ian-Chains Baute.", "type": "safe", "client_host": request.client.host}
 
+@app.get("/csrf-token")
+async def get_csrf_token(response: Response):
+    """Issue a new CSRF token. Sets the token as a cookie and returns it in the response body.
+    Clients must include the token value in the X-CSRF-Token header for all POST and PUT requests."""
+    token = await create_csrf_token()
+    response.set_cookie(
+        key=settings.CSRF_COOKIE_KEY,
+        value=token,
+        domain=settings.COOKIE_DOMAIN,
+        httponly=False,  # must be readable by JavaScript so the client can send it back in the X-CSRF-Token header
+        secure=True,
+        samesite="Strict",
+        max_age=settings.CSRF_EXP_MINUTES * 60,
+    )
+    return {"csrf_token": token}
+
 # -------- USER ENDPOINTS --------
 
 class UserCreate(BaseModel):
@@ -149,8 +165,11 @@ async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
     return user
 
 @app.post("/users", status_code=201)
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+async def create_user(user: UserCreate, request: Request, db: AsyncSession = Depends(get_db)):
     """Create a new user in the database with hashed password."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # basic password & input validation
     await check_user_requirements(user)
@@ -186,6 +205,9 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 @app.post("/update/users", status_code=200)
 async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. POST VERSION User must be authenticated and match the JWT subject."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # verify token and ensure user is same as token subject
     payload = await verify_jwt_token(request)
@@ -242,6 +264,9 @@ async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db:
 @app.put("/users", status_code=200)
 async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. PUT VERSION User must be authenticated and match the JWT subject."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # verify token and ensure user is same as token subject
     payload = await verify_jwt_token(request)
@@ -303,8 +328,11 @@ class LoginRequest(BaseModel):
     password: str
 
 @app.post("/login")
-async def login(credentials: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(credentials: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT token."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # find user by username or email
     result = await db.execute(select(models.User).where((models.User.username == credentials.username_or_email) | (models.User.email == credentials.username_or_email)))
@@ -338,6 +366,10 @@ async def login(credentials: LoginRequest, response: Response, db: AsyncSession 
 @app.post("/logout")
 async def logout(request: Request, response: Response):
     """Logout user by clearing the authentication cookie."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
+
     jwt = request.cookies.get(settings.COOKIE_KEY)
     if not jwt:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -367,6 +399,9 @@ class PostCreate(BaseModel):
 @app.post("/posts", status_code=201)
 async def create_post(post: Annotated[PostCreate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Create a new post. Requires valid JWT and at least level 9 access."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # Verify JWT from cookie
     payload = await verify_jwt_token(request)
@@ -492,6 +527,9 @@ async def search_posts(q: str, db: AsyncSession = Depends(get_db)):
 @app.post("/reset", status_code=200)
 async def reset_database(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Reset all application data in the database while keeping tables/schema."""
+
+    # verify CSRF token
+    await verify_csrf_token(request)
 
     # Verify JWT and access level
     payload = await verify_jwt_token(request)
