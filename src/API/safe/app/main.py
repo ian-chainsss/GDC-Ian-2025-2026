@@ -92,7 +92,7 @@ async def read_root(request: Request):
 @app.get("/csrf-token")
 async def get_csrf_token(response: Response):
     """Issue a new CSRF token. Sets the token as a cookie and returns it in the response body.
-    Clients must include the token value in the X-CSRF-Token header for all POST and PUT requests."""
+    Clients must include the token value in the header configured by `settings.CSRF_TOKEN_HEADER_KEY` for all POST and PUT requests."""
     token = await create_csrf_token()
     response.set_cookie(
         key=settings.CSRF_COOKIE_KEY,
