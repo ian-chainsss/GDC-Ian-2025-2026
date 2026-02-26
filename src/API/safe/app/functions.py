@@ -3,6 +3,10 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, Argon2Error
 import jwt
 
+# CSRF imports
+import secrets
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
 # algemene imports
 from fastapi import Request, HTTPException
 from datetime import datetime, timedelta
@@ -136,3 +140,31 @@ async def has_level_access_by_db(payload: dict, level: int) -> bool:
 
     if not role_int <= level:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+def create_csrf_token() -> str:
+    """Create a signed stateless CSRF token using itsdangerous. Returns the token string."""
+
+    s = URLSafeTimedSerializer(settings.JWT_SECRET)
+    random_value = secrets.token_hex(32)
+    return s.dumps(random_value)
+
+def verify_csrf_token(request: Request) -> None:
+    """Verify the CSRF token via double submit (cookie + X-CSRF-Token header).
+    Raises HTTPException if the token is missing, mismatched, expired or has an invalid signature."""
+
+    cookie_token = request.cookies.get(settings.CSRF_COOKIE_KEY)
+    header_token = request.headers.get("X-CSRF-Token")
+
+    if not cookie_token or not header_token:
+        raise HTTPException(status_code=403, detail="CSRF token missing")
+
+    if cookie_token != header_token:
+        raise HTTPException(status_code=403, detail="CSRF token mismatch")
+
+    s = URLSafeTimedSerializer(settings.JWT_SECRET)
+    try:
+        s.loads(cookie_token, max_age=settings.JWT_EXP_MINUTES * 60)
+    except SignatureExpired:
+        raise HTTPException(status_code=403, detail="CSRF token expired")
+    except BadSignature:
+        raise HTTPException(status_code=403, detail="Invalid CSRF token")
