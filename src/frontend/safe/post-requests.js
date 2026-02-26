@@ -13,9 +13,13 @@ async function create_post(event) {
     const url = website + "posts";
 
     try {
+        await ensure_csrf_token();
         const response = await fetch(url, {
             method: "POST",
-            headers: { 'Content-Type': "application/x-www-form-urlencoded" },
+            headers: {
+                'Content-Type': "application/x-www-form-urlencoded",
+                [CSRF_HEADER_NAME]: get_csrf_token()
+            },
             credentials: 'include',
             body: new URLSearchParams({
                 title: title_input,
