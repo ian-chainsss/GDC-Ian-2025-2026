@@ -9,3 +9,4 @@ logging
 argon2-cffi
 pyjwt
 markupsafe
+itsdangerous

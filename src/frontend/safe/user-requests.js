@@ -13,9 +13,13 @@ async function login_user(event) {
     const url = website + "login";
 
     try {
+        await ensure_csrf_token();
         const response = await fetch(url, {
             method: "POST",
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                [CSRF_HEADER_NAME]: get_csrf_token()
+            },
             body: JSON.stringify({ username_or_email, password }),
             credentials: 'include'
         });
@@ -40,9 +44,11 @@ async function logout() {
     const url = website + "logout"
 
     try {
+        await ensure_csrf_token();
         const response = await fetch(url, {
             method: "POST",
-            credentials: 'include'
+            credentials: 'include',
+            headers: { [CSRF_HEADER_NAME]: get_csrf_token() }
         });
         
         const result = await response.json();
@@ -76,10 +82,15 @@ async function register_user(event) {
     const url = website + "users";
 
     try {
+        await ensure_csrf_token();
         const response = await fetch(url, {
             method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            headers: {
+                'Content-Type': 'application/json',
+                [CSRF_HEADER_NAME]: get_csrf_token()
+            },
+            body: JSON.stringify({ username, email, password }),
+            credentials: 'include'
         });
 
         const result = await response.json();
