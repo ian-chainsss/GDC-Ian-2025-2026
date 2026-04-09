@@ -3,34 +3,52 @@
     <meta charset="UTF-8" />
     <title>Attacker - GET CSRF Cookie</title>
     <script>
+        // Basisconfiguratie voor deze proof-of-concept pagina.
         const website = "https://safe-api.ian-chains.be/";
         const CSRF_COOKIE_NAME = "csrf_token";
         const CSRF_HEADER_NAME = "X-CSRF-Token";
 
+        /**
+         * Schrijft een statusbericht naar de pagina en kleurt het resultaat.
+         */
         function set_status(message, type) {
+            // Stap 1: haal het status-element op.
             const el = document.getElementById('status');
             if (!el) {
                 return;
             }
 
+            // Stap 2: toon tekst en visuele feedback.
             el.textContent = message;
             el.style.color = type === 'error' ? '#b91c1c' : '#166534';
         }
 
+        /**
+         * Leest het CSRF-token uit de browsercookie.
+         */
         function get_csrf_token() {
+            // Stap 1: regex-zoekopdracht op de cookie-string.
             const match = document.cookie.match(new RegExp('(?:^|; )' + CSRF_COOKIE_NAME + '=([^;]*)'));
+
+            // Stap 2: decodeer en retourneer, of null als cookie ontbreekt.
             return match ? decodeURIComponent(match[1]) : null;
         }
 
+        /**
+         * Haalt via de API een CSRF-cookie op in de browser.
+         */
         async function get_csrf_token_value() {
+            // Stap 1: endpoint bepalen en voortgang tonen.
             const url = website + "csrf-token";
             set_status('CSRF Token ophalen...', 'info');
 
             try {
+                // Stap 2: request met credentials zodat cookie kan worden gezet.
                 const response = await fetch(url, {
                     credentials: 'include'
                 });
 
+                // Stap 3: parse en controleer resultaat.
                 const result = await response.json();
                 if (!response.ok) {
                     console.error('Status:', response.status, 'Error:', result);
@@ -38,15 +56,18 @@
                     return;
                 }
 
+                // Stap 4: meld succesvolle token-ophaalactie.
                 console.log('CSRF Token:', result);
                 set_status('CSRF Token succesvol opgehaald.', 'success');
                 return;
             } catch (error) {
+                // Stap 5: netwerkfouten opvangen.
                 console.error(error);
                 set_status('Netwerkfout: ' + (error.message || String(error)), 'error');
             }
         }
 
+        // Start de actie automatisch bij paginalading.
         window.onload = () => {
             get_csrf_token_value();
         };
@@ -55,5 +76,5 @@
 <body>
 <h1 class="text-3xl font-bold mb-4">CSRF Token Ophalen</h1>
 <p id="status">Wachten op laden...</p>
-<body>
+</body>
 </html>

@@ -1,6 +1,20 @@
+/**
+ * Logt een gebruiker in met gebruikersnaam/e-mail en wachtwoord.
+ *
+ * Wanneer gebruikt:
+ * - bij submit van het loginformulier
+ *
+ * Hoe werkt het:
+ * - leest formulierwaarden
+ * - vraagt eerst een CSRF-token op
+ * - verstuurt JSON naar POST /login
+ * - toont teruggekregen gebruikersinfo in een modal
+ */
 async function login_user(event) {
+    // Stap 1: voorkom standaard formuliergedrag zodat we de flow volledig via JS afhandelen.
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
 
+    // Stap 2: haal formulier en velden op uit de DOM.
     const form = document.getElementById('user-login-form');
     if (!form) return;
 
@@ -13,7 +27,10 @@ async function login_user(event) {
     const url = website + "login";
 
     try {
+        // Stap 3: zorg dat CSRF-cookie/token beschikbaar is.
         await ensure_csrf_token();
+
+        // Stap 4: verstuur credentials als JSON met sessiecookie.
         const response = await fetch(url, {
             method: "POST",
             headers: {
@@ -24,6 +41,7 @@ async function login_user(event) {
             credentials: 'include'
         });
 
+        // Stap 5: verwerk de response en toon resultaat.
         const result = await response.json();
         if (!response.ok) {
             error_modal(`${response.status}`, `${result.detail || result.message || JSON.stringify(result)}`);
@@ -40,10 +58,22 @@ async function login_user(event) {
 }
 
 
+/**
+ * Logt de huidige sessie uit.
+ *
+ * Wanneer gebruikt:
+ * - bij klik op logout in de interface
+ *
+ * Hoe werkt het:
+ * - zorgt dat een CSRF-token beschikbaar is
+ * - verstuurt POST /logout met credentials
+ */
 async function logout() {
+    // Stap 1: endpoint bouwen.
     const url = website + "logout"
 
     try {
+        // Stap 2: token verzekeren en beveiligde logout uitvoeren.
         await ensure_csrf_token();
         const response = await fetch(url, {
             method: "POST",
@@ -51,6 +81,7 @@ async function logout() {
             headers: { [CSRF_HEADER_NAME]: get_csrf_token() }
         });
         
+        // Stap 3: feedback verwerken.
         const result = await response.json();
         if (!response.ok) {
             error_modal(`${response.status}`, `${result.detail}`);
@@ -65,9 +96,22 @@ async function logout() {
     }
 }
 
+/**
+ * Registreert een nieuwe gebruiker.
+ *
+ * Wanneer gebruikt:
+ * - bij submit van het registratieformulier
+ *
+ * Hoe werkt het:
+ * - leest username, email en password uit het formulier
+ * - haalt CSRF-token op indien nodig
+ * - verstuurt JSON naar POST /users
+ */
 async function register_user(event) {
+    // Stap 1: voorkom standaard formuliergedrag.
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
 
+    // Stap 2: lees registratievelden uit het formulier.
     const form = document.getElementById('user-registration-form');
     if (!form) return;
 
@@ -82,7 +126,10 @@ async function register_user(event) {
     const url = website + "users";
 
     try {
+        // Stap 3: token klaarzetten voor deze muterende request.
         await ensure_csrf_token();
+
+        // Stap 4: verstuur nieuwe gebruiker als JSON.
         const response = await fetch(url, {
             method: "POST",
             headers: {
@@ -93,6 +140,7 @@ async function register_user(event) {
             credentials: 'include'
         });
 
+        // Stap 5: response interpreteren en status tonen.
         const result = await response.json();
         if (!response.ok) {
             error_modal(`${response.status}`, `${result.detail || result.message || JSON.stringify(result)}`);
@@ -108,9 +156,22 @@ async function register_user(event) {
     }
 }
 
+/**
+ * Haalt de gegevens van een specifieke gebruiker op via user-id.
+ *
+ * Wanneer gebruikt:
+ * - bij submit van het user-data formulier
+ *
+ * Hoe werkt het:
+ * - leest de user-id uit het formulier
+ * - voert GET /users/{id} uit
+ * - toont uitgebreide metadata in het succesmodal
+ */
 async function get_user_data(event) {
+    // Stap 1: voorkom standaard submit-flow.
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
 
+    // Stap 2: lees user-id uit de form-input.
     const form = document.getElementById('user-data-form');
     if (!form) return;
 
@@ -120,10 +181,12 @@ async function get_user_data(event) {
     const url = website + "users/" + userId;
 
     try {
+        // Stap 3: haal user-data op via GET.
         const response = await fetch(url, {
             method: "GET",
         });
 
+        // Stap 4: parse resultaat en toon detailinformatie.
         const result = await response.json();
         if (!response.ok) {
             error_modal(`${response.status}`, `${result.detail || result.message || JSON.stringify(result)}`);

@@ -65,6 +65,7 @@
         <div class="collapse-content text-sm">
             Druk Op de knop hier onder om te testen of de frontend verbinding kan maken met de API.
         </div>
+        <!-- Inline JS: klik triggert test_connection() in all-round.js -->
         <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]" onclick="test_connection()">Test Connection</button>
     </div>
 
@@ -78,6 +79,7 @@
             Vul de velden in om een nieuwe gebruiker aan te maken.
         </div>
 
+        <!-- Inline JS: submit triggert register_user(event) en voorkomt full page reload -->
         <form id="user-registration-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="register_user(event); return false;">
             <fieldset>
             <label class="input validator">
@@ -128,6 +130,7 @@
             Vul de velden in om in te loggen met een bestaande gebruiker.
         </div>
 
+            <!-- Inline JS: submit triggert login_user(event) en houdt de SPA-achtige flow in stand -->
             <form id="user-login-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="login_user(event); return false;">
             <fieldset>
             <label class="input validator">
@@ -163,6 +166,7 @@
         <div class="collapse-content text-sm">
             Druk op de knop hier onder om uit te loggen.
         </div>
+        <!-- Inline JS: klik triggert logout() -->
         <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/10 font-bold text-[16px]" onclick="logout()">Logout</button>
     </div>
 
@@ -173,6 +177,7 @@
             Vul de gebruiks ID in om de informatie van die gebruiker op te halen.
         </div>
 
+        <!-- Inline JS: submit triggert get_user_data(event) voor lookup op user-id -->
         <form id="user-data-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="get_user_data(event); return false;">
             <fieldset>
             <label class="input validator">
@@ -200,6 +205,7 @@
             Vul de velden in om een nieuwe post aan te maken.
         </div>
 
+        <!-- Inline JS: submit triggert create_post(event) voor nieuwe post-creatie -->
         <form id="post-create-form" class="mx-6 mt-2 flex flex-col gap-6" onsubmit="create_post(event); return false;">
             <fieldset>
             <label class="input validator w-3/4">
@@ -252,6 +258,7 @@
 
         </div>
 
+        <!-- Inline JS: klik triggert load_latest_posts() en rendert cards dynamisch -->
         <button class="btn btn-neutral mx-6 mt-2 mb-6 w-1/8 font-bold text-[16px]" onclick="load_latest_posts()">Load Posts</button>
 
     </div>
@@ -262,6 +269,7 @@
             Vul hieronder een zoekterm in om posts te zoeken die deze term bevatten.
         </div>
 
+        <!-- Inline JS: submit triggert search_posts(event) met query uit de search-input -->
         <form id="post-search-form" onsubmit="search_posts(event); return false;">
             <div class="join ml-6 my-4">
                 <div>
@@ -312,6 +320,7 @@
         <div class="collapse-content text-sm">
             Klik op de knop hier onder om de database te leggen, je hebt admin permissies nodig om dit te doen.
         </div>
+        <!-- Inline JS: klik triggert reset_database() (admin-actie) -->
         <button class="btn btn-warning mx-6 mt-2 mb-6 w-1/6 font-bold text-[16px]" onclick="reset_database()">Reset Database</button>
     </div>
 </div>
