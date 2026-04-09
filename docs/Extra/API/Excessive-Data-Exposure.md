@@ -1,15 +1,20 @@
 # Aangeven welke data er verwacht wordt als input en output
 ## Doel
 Het aangeven bij elke API endpoint welke data er verwacht wordt als input en wat de output zou kunnen zijn.
+
 ## Reden
 ### Documentatie
 Het is altijd goed voor documententatie doeleiden als je met meerdere personen aan een project werkt, dat je aangeeft wat elke API endpoint van input data verwacht en wat de output data zal zijn. Dit maakt het makkelijker voor andere ontwikkelaars om te begrijpen hoe ze de API moeten gebruiken en wat ze kunnen verwachten als resultaat.  
+
 ### Duidelijkheid
 Dit voorkomt ook misverstanden en fouten bij het gebruik van de API, omdat iedereen duidelijk weet wat er verwacht wordt.
+
 ### Beveiliging
 Dit voorkomt ook dat er bij de output te veel data wordt teruggegeven, wat gevaarlijk kan zijn voor de beveiliging van de data **Excessive Data Exposure**. Je wilt immers geen gevoelige informatie zoals hashed wachtwoorden teruggeven als output.
+
 ## Omgeving
 De uitleg in deze documentatie is speicifiek voor API systemen die gebouw zijn in Python met FastAPI, maar de principes kunnen ook worden toegepast in andere programmeertalen en frameworks. Er wordt hierbij vooral gebruik gemaakt van Pydantic modellen om de input en output data te definiëren.
+
 ## Stappen
 ### Input Data Definiëren
 1. Maak een Pydantic model aan dat de structuur van de input data definieert. Dit model bevat de velden die verwacht worden als input, samen met hun types en eventuele validatie regels.
