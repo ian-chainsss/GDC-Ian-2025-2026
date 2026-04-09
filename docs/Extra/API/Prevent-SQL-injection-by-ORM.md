@@ -28,6 +28,65 @@ def get_user(user_id: int):
     return user
 ```
 
+## Wat is een ORM (Object-Relational Mapper)?
+### Definitie
+Een ORM (Object-Relational Mapper) is een programmeertechniek en softwarelaag die een brug vormt tussen de objectgeoriënteerde programmeerwereld en de relationele databasewereld. Het vertaalt automatisch objecten (klassen en instanties) uit je code naar rijen en tabellen in een database, en vice versa. Hierdoor hoef je geen ruwe SQL-query's te schrijven om met je database te communiceren — de ORM genereert deze voor je achter de schermen.
+
+### Wat doet een ORM?
+Een ORM neemt de taak op zich om de communicatie tussen je applicatie en de database te beheren. Concreet doet een ORM het volgende:
+
+- **Object-naar-tabel mapping**: Elk Python-klasse (model) dat je definieert met de ORM, komt overeen met een tabel in de database. De attributen van de klasse komen overeen met de kolommen van de tabel.
+- **Query-generatie**: In plaats van handmatig SQL-query's te schrijven (zoals `SELECT * FROM users WHERE id = 1`), gebruik je Python-methoden en -objecten (zoals `session.query(User).filter(User.id == 1)`). De ORM vertaalt dit automatisch naar de juiste SQL-query.
+- **Parameter binding**: De ORM past automatisch parameter binding toe bij het genereren van SQL-query's. Dit betekent dat gebruikersinvoer nooit direct in de query-string wordt ingevoegd, maar altijd als een aparte parameter wordt doorgegeven. Dit is precies wat SQL-injectie voorkomt.
+- **CRUD-operaties**: De ORM biedt eenvoudige methoden om Create, Read, Update en Delete operaties uit te voeren op je database, zonder dat je zelf SQL hoeft te schrijven.
+- **Relatiebeheer**: De ORM beheert ook relaties tussen tabellen (zoals one-to-many, many-to-many), zodat je eenvoudig gerelateerde objecten kunt ophalen en bewerken.
+
+### Functie en Doel van een ORM
+Het belangrijkste doel van een ORM is om de kloof tussen objectgeoriënteerd programmeren en relationele databases te overbruggen. Dit brengt verschillende voordelen met zich mee:
+
+- **Beveiliging**: Door automatisch parameter binding toe te passen, voorkomt een ORM dat gebruikersinvoer direct in SQL-query's wordt geïnjecteerd. Dit is de belangrijkste reden waarom ORMs helpen om SQL-injectie te voorkomen.
+- **Productiviteit**: Je hoeft geen SQL-query's te schrijven, wat de ontwikkelingssnelheid verhoogt en de kans op fouten vermindert.
+- **Onderhoudbaarheid**: Omdat je database-logica gecentraliseerd is in je ORM-modellen, is het makkelijker om wijzigingen door te voeren en je code te onderhouden.
+- **Database-onafhankelijkheid**: Veel ORMs ondersteunen meerdere databases (PostgreSQL, MySQL, SQLite, etc.). Als je van database wilt wisselen, hoef je vaak alleen de connectie-url aan te passen, niet je query-logica.
+- **Type-veiligheid**: Doordat je met Python-objecten werkt in plaats van ruwe SQL-strings, kun je gebruik maken van type hints en IDE-ondersteuning, wat fouten vroegtijdig opspoort.
+
+### Waarvoor wordt een ORM gebruikt?
+Een ORM wordt gebruikt in situaties waar:
+
+- Je een **API of webapplicatie** bouwt die met een relationele database communiceert en je wilt dit op een veilige en gestructureerde manier doen.
+- Je **SQL-injectie wilt voorkomen** door geen ruwe SQL-query's met string concatenatie te schrijven, maar in plaats daarvan de automatische parameter binding van de ORM te gebruiken.
+- Je **snel en efficiënt** database-operaties wilt uitvoeren zonder handmatig SQL te schrijven voor elke operatie.
+- Je **meerdere databases wilt ondersteunen** zonder voor elke database aparte SQL-query's te hoeven schrijven.
+- Je **relaties tussen tabellen** wilt beheren (bijv. een gebruiker heeft meerdere posts, een post heeft meerdere comments) zonder complexe JOIN-query's handmatig te schrijven.
+
+### Voorbeelden van populaire ORMs
+
+| Programmeertaal | ORM | Framework |
+|---|---|---|
+| Python | SQLAlchemy | FastAPI, Flask |
+| Python | Django ORM | Django |
+| JavaScript/TypeScript | Prisma | Next.js, Express |
+| JavaScript/TypeScript | TypeORM | NestJS, Express |
+| Java | Hibernate | Spring Boot |
+| C# | Entity Framework | ASP.NET |
+| PHP | Eloquent | Laravel |
+
+### Hoe werkt een ORM in de praktijk?
+Zonder ORM zou je zelf SQL-query's moeten schrijven om data op te halen of op te slaan:
+```python
+# Zonder ORM - handmatige SQL (kwetsbaar voor SQL-injectie als je string concatenatie gebruikt)
+cursor.execute("SELECT * FROM users WHERE username = '" + username + "'")
+```
+
+Met een ORM werk je met Python-objecten en methoden, en de ORM genereert automatisch de juiste en veilige SQL:
+```python
+# Met ORM - SQLAlchemy genereert automatisch veilige SQL met parameter binding
+user = session.query(User).filter(User.username == username).first()
+# SQLAlchemy genereert: SELECT * FROM users WHERE username = ? met username als parameter
+```
+
+De ORM zorgt er dus voor dat de gebruikersinvoer (`username`) nooit direct in de SQL-string wordt geplaatst, maar altijd als een gebonden parameter wordt doorgegeven. Dit maakt SQL-injectie onmogelijk via deze route.
+
 ## Stappen
 ### Declarative Base maken
 1. Maak een declarative base aan met SQLAlchemy, wat de basis zal zijn voor het definiëren van je database modellen.
