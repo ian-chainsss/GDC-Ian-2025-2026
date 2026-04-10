@@ -75,6 +75,7 @@ Alle informatie voor het opzetten van de FastAPI Docker containers is te vinden 
 
 ### Development Libraries API
 - [Python](https://www.python.org/) - Programming Language
+- [Uvicorn](https://www.uvicorn.org/) - ASGI Server
 - [FastAPI](https://fastapi.tiangolo.com/) - Python API Framework
 - [SQLAlchemy](https://www.sqlalchemy.org/) - Python SQL Toolkit & Object Relational Mapper
 - [Pydantic](https://pydantic.dev/) - Data Validation Library
