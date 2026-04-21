@@ -203,7 +203,7 @@ async def create_user(user: UserCreate, request: Request, db: AsyncSession = Dep
     return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "created_at": new_user.created_at}
 
 @app.post("/update/users", status_code=200)
-async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
+async def update_user_post(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. POST VERSION User must be authenticated and match the JWT subject."""
 
     # verify CSRF token
@@ -262,7 +262,7 @@ async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db:
     return {"id": db_user.id, "username": db_user.username, "email": db_user.email}
 
 @app.put("/users", status_code=200)
-async def update_user(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
+async def update_user_put(user: Annotated[UserUpdate, Form()], request: Request, db: AsyncSession = Depends(get_db)):
     """Update an existing user's data. PUT VERSION User must be authenticated and match the JWT subject."""
 
     # verify CSRF token
