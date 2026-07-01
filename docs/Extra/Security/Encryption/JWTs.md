@@ -1,0 +1,2 @@
+# Verschillende signatuur- & encryptie-algoritmes voor JWTs
+In dit bestand wordt een overzicht gegeven van de verschillende signatuur- en encryptie-algoritmes die gebruikt kunnen worden voor JSON Web Tokens (JWTs). JWTs zijn een populaire methode voor het veilig overdragen van claims tussen partijen, en het is belangrijk om de juiste algoritmes te kiezen op basis van de beveiligingsbehoeften en prestatie-eisen van de toepassing.
