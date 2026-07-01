@@ -2,3 +2,5 @@
 .venv/
 __pycache__/
 *.env
+tests/html-stripping-sanitization.py
+src/API/safe/safe-api-bugs-vulnerabilities-audit.md
