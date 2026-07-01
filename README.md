@@ -31,6 +31,10 @@ Bij web- en REST-API’s komen beveiligingsproblemen zoals **Cross-Site Scriptin
 > Deze onderwerpen komen niet aan bod in de GDC (paper of presentatie).  
 > Documentatie is te vinden onder `/docs/Extra/`
 - Lack of Rate Limiting
+- Encryptie & Algoritmes
+- JWTs - JSON Web Tokens
+- Kong API Gateway
+- Authentication & Authorization
 - CSP - Content Security Policy
 - Insufficient Logging & Monitoring (malicious activities go unnoticed)
 - Excessive Data Exposure
