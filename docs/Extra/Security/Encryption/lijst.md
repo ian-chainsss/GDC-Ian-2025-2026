@@ -62,5 +62,39 @@ Deze algoritmes zullen verder onderzocht worden op basis van hun werking, veilig
 
 #### Stream ciphers
 - ChaCha20
+- ChaCha20-Poly1305
 
 ### Asymmetrische encryptie
+#### Gebaseerd op integer factorisatie
+- RSA (Rivest-Shamir-Adleman)
+
+#### Gebaseerd op discrete logaritmes
+- Diffie-Hellman (DH) - sleuteluitwisseling
+
+#### Gebaseerd op elliptische krommen (Elliptic Curve Cryptography, ECC)
+- ECDH - sleuteluitwisseling
+- ECDSA (Elliptic Curve Digital Signature Algorithm) - digitale handtekeningen
+- Ed25519 - digitale handtekeningen
+
+#### Post-quantum cryptography (PQC)
+- Kyber (ML-KEM) - sleuteluitwisseling
+- Dilithium (ML-DSA) - digitale handtekeningen
+
+### Hashing-algoritmes
+#### Cryptografische hashfuncties
+- SHA-2 familie (Secure Hash Algorithm 2) (SHA-256, SHA-512, etc.)
+- SHA-3 (Secure Hash Algorithm 3)
+- BLAKE2
+- BLAKE3
+
+#### Warchtwoord-hashing algoritmes
+- bcrypt
+- argon2
+
+#### Keyed hashing & authenticatie algoritmes
+- HMAC (Hash-based Message Authentication Code)
+
+### Toepassingen van encryptie-algoritmes
+- TLS/SSL voor veilige communicatie over het internet
+- JWE (JSON Web Encryption) voor veilige gegevensoverdracht in webapplicaties
+- JWT (JSON Web Token) voor veilige authenticatie en autorisatie
