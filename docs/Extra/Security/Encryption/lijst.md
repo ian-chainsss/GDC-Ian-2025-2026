@@ -51,7 +51,6 @@ Hieronder volgt een overzicht van verschillende encryptie-algoritmes, ingedeeld 
 - HMAC (Hash-based Message Authentication Code)
 
 
-
 ## Belangrijke Moderne Encryptie-algoritmes
 Deze algoritmes worden momenteel de dag van vandaag (2026) als veilig beschouwd en worden veel gebruikt in moderne toepassingen. Het is aangeraden om deze algoritmes te gebruiken in nieuwe toepassingen, tenzij er een specifieke reden is om een ander algoritme te gebruiken.  
 Deze algoritmes zullen verder onderzocht worden op basis van hun werking, veiligheid, prestaties en gebruik in de praktijk. Bekijk hiervoor het bestand [werking.md](werking.md).
