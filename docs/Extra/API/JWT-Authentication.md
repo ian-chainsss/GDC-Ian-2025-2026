@@ -45,6 +45,10 @@ De payload bevat de claims. Dit zijn statements over de gebruiker of applicatie.
 - `exp` (Expiration Time): Wanneer verloopt het token?
 - `iat` (Issued At): Wanneer is het token gegenereerd?
 - `nbf` (Not Before): Wanneer mag het token gebruikt worden?
+- `jti` (JWT ID): Unieke identifier voor het token
+- `typ` (Type): Type van het token (optioneel)
+- `alg` (Algorithm): Algoritme gebruikt voor ondertekening (optioneel)
+- `cty` (Content Type): Type van de inhoud (optioneel)
 
 **Public Claims**: Standaard gedefinieerde claims die openbaar gebruikt kunnen worden
 
