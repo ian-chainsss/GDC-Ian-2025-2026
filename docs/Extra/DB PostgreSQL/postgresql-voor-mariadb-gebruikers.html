@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL voor wie MariaDB al kent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<style>
+  :root{
+    --bg:#0B111C;
+    --bg-panel:#121A29;
+    --bg-elevated:#182338;
+    --bg-code:#0E1521;
+    --border:#243049;
+    --border-soft:#1B263C;
+    --ink:#E9EDF5;
+    --ink-dim:#9AA7BD;
+    --ink-faint:#5E6B84;
+    --gold:#E3A857;
+    --gold-soft:rgba(227,168,87,.14);
+    --teal:#45C4B0;
+    --teal-soft:rgba(69,196,176,.14);
+    --violet:#8D85DE;
+    --violet-soft:rgba(141,133,222,.14);
+    --rose:#E2637A;
+    --rose-soft:rgba(226,99,122,.14);
+    --green:#6FCF97;
+    --green-soft:rgba(111,207,151,.14);
+    --font-display:'IBM Plex Serif', Georgia, serif;
+    --font-body:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --maxw:840px;
+    --sidebar-w:272px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(69,196,176,.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(227,168,87,.06), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{ font-family:var(--font-display); font-weight:600; line-height:1.2; margin:0; color:var(--ink); }
+  p{ margin:0 0 1em 0; color:var(--ink); }
+  p:last-child{ margin-bottom:0; }
+  a{ color:var(--teal); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  ul,ol{ margin:0 0 1em 0; padding-left:1.3em; }
+  li{ margin-bottom:.45em; }
+  li:last-child{ margin-bottom:0; }
+  strong{ color:var(--ink); font-weight:600; }
+  code{ font-family:var(--font-mono); font-size:.88em; }
+  :not(pre) > code{
+    background:var(--bg-elevated);
+    border:1px solid var(--border-soft);
+    padding:.12em .42em;
+    border-radius:5px;
+    color:var(--gold);
+  }
+  ::selection{ background:var(--teal); color:#04140f; }
+
+  a.skip-link{
+    position:absolute; left:-999px; top:0; z-index:999;
+    background:var(--gold); color:#1a1206; padding:.6em 1em; border-radius:0 0 8px 0;
+  }
+  a.skip-link:focus{ left:0; }
+
+  :focus-visible{ outline:2px solid var(--teal); outline-offset:2px; border-radius:4px; }
+
+  /* ---------- progress bar ---------- */
+  #progress-bar{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--gold), var(--teal));
+    z-index:200; transition:width .1s linear;
+  }
+
+  /* ---------- layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns: var(--sidebar-w) minmax(0,1fr);
+    max-width:1180px;
+    margin:0 auto;
+    align-items:start;
+  }
+  .sidebar{
+    position:sticky; top:0; height:100vh;
+    padding:2.4em 1.4em 2em 1.6em;
+    border-right:1px solid var(--border-soft);
+    overflow-y:auto;
+  }
+  .sidebar__brand{
+    display:flex; align-items:center; gap:.6em;
+    font-family:var(--font-mono); font-size:.8em; color:var(--ink-faint);
+    margin-bottom:1.6em; letter-spacing:.04em;
+  }
+  .sidebar__brand .elephant{ font-size:1.3em; }
+  .toc{ list-style:none; margin:0; padding:0; }
+  .toc li{ margin:0; }
+  .toc a{
+    display:flex; gap:.6em; align-items:baseline;
+    padding:.5em .5em; margin:.05em 0; border-radius:7px;
+    color:var(--ink-dim); font-size:.86em; border-left:2px solid transparent;
+  }
+  .toc a .num{ font-family:var(--font-mono); color:var(--ink-faint); font-size:.85em; flex-shrink:0; }
+  .toc a:hover{ background:var(--bg-panel); color:var(--ink); text-decoration:none; }
+  .toc a.active{ background:var(--gold-soft); color:var(--gold); border-left-color:var(--gold); }
+  .toc a.active .num{ color:var(--gold); }
+  .mobile-toc{ display:none; }
+
+  main{ min-width:0; padding:2.4em 2.2em 6em; }
+
+  /* ---------- hero ---------- */
+  .hero{ max-width:var(--maxw); margin:1em 0 5em; }
+  .hero__eyebrow{
+    font-family:var(--font-mono); font-size:.8em; color:var(--teal);
+    text-transform:uppercase; letter-spacing:.12em; margin-bottom:.9em;
+  }
+  .hero h1{ font-size:2.5em; margin-bottom:.45em; }
+  .hero h1 em{ font-style:normal; color:var(--gold); }
+  .hero__lead{ font-size:1.08em; color:var(--ink-dim); max-width:60ch; margin-bottom:1.8em; }
+  .hero__lead strong{ color:var(--ink); }
+
+  .terminal{
+    background:var(--bg-code); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; margin:1.8em 0 2em;
+    box-shadow:0 20px 50px -25px rgba(0,0,0,.6);
+  }
+  .terminal__bar{
+    display:flex; align-items:center; gap:.5em;
+    padding:.65em .9em; background:var(--bg-panel); border-bottom:1px solid var(--border-soft);
+  }
+  .terminal__bar .dot{ width:10px; height:10px; border-radius:50%; }
+  .terminal__bar .dot:nth-child(1){ background:#E2637A; }
+  .terminal__bar .dot:nth-child(2){ background:#E3A857; }
+  .terminal__bar .dot:nth-child(3){ background:#6FCF97; }
+  .terminal__bar .label{ margin-left:.6em; font-family:var(--font-mono); font-size:.78em; color:var(--ink-faint); }
+  .terminal__body{ padding:1.3em 1.2em; font-family:var(--font-mono); font-size:.86em; min-height:5.5em; }
+  .terminal__prompt{ color:var(--teal); }
+  #terminal-line{ color:var(--ink); }
+  .terminal__cursor{ display:inline-block; width:.5em; height:1em; background:var(--gold); vertical-align:-2px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:.5em; }
+  .chip{
+    font-family:var(--font-mono); font-size:.76em; padding:.4em .75em;
+    border:1px solid var(--border); border-radius:999px; color:var(--ink-dim);
+    background:var(--bg-panel);
+  }
+
+  /* ---------- chapters ---------- */
+  .chapter{ max-width:var(--maxw); margin:0 0 5.5em; scroll-margin-top:1.6em; }
+  .chapter-head{ display:flex; align-items:baseline; gap:.7em; margin-bottom:.3em; }
+  .chapter-head .num{ font-family:var(--font-mono); color:var(--ink-faint); font-size:1.05em; }
+  .chapter h2{ font-size:1.65em; }
+  .chapter__intro{ color:var(--ink-dim); margin:.9em 0 1.4em; font-size:1.02em; }
+
+  .vs-badge{
+    display:flex; gap:.7em; align-items:flex-start;
+    background:var(--gold-soft); border:1px solid rgba(227,168,87,.35);
+    border-radius:10px; padding:.85em 1em; margin:0 0 1.6em;
+    font-size:.92em;
+  }
+  .vs-badge__tag{
+    font-family:var(--font-mono); font-size:.72em; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--gold); background:rgba(227,168,87,.18); padding:.25em .55em; border-radius:5px;
+    flex-shrink:0; margin-top:.1em;
+  }
+  .vs-badge p{ color:var(--ink); margin:0; }
+
+  h3{ font-size:1.18em; margin:1.8em 0 .6em; color:var(--ink); }
+  h3 .h3-icon{ color:var(--teal); margin-right:.35em; }
+
+  /* ---------- code blocks ---------- */
+  .code-block{
+    background:var(--bg-code); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; margin:1.1em 0 1.4em;
+  }
+  .code-block__head{
+    display:flex; align-items:center; gap:.4em;
+    padding:.55em .8em; background:var(--bg-panel); border-bottom:1px solid var(--border-soft);
+  }
+  .code-block__head .dot{ width:8px; height:8px; border-radius:50%; background:var(--border); }
+  .code-block__label{ margin-left:.5em; font-family:var(--font-mono); font-size:.74em; color:var(--ink-faint); }
+  .code-block pre{ margin:0; padding:1em 1.1em; overflow-x:auto; }
+  .code-block code{ font-family:var(--font-mono); font-size:.85em; line-height:1.6; background:transparent; border:none; padding:0; color:var(--ink); }
+  .hljs{ background:transparent !important; color:var(--ink); }
+  .hljs-keyword,.hljs-operator{ color:var(--gold); }
+  .hljs-string{ color:var(--teal); }
+  .hljs-comment{ color:var(--ink-faint); font-style:italic; }
+  .hljs-number{ color:var(--violet); }
+  .hljs-title.function_,.hljs-function .hljs-title{ color:var(--ink); font-weight:600; }
+  .hljs-built_in,.hljs-type{ color:var(--rose); }
+  .hljs-literal{ color:var(--violet); }
+  .hljs-params{ color:var(--ink-dim); }
+
+  /* ---------- callouts ---------- */
+  .callout{
+    display:flex; gap:.8em; border-radius:10px; padding:.9em 1.05em; margin:1.3em 0;
+    border:1px solid var(--border-soft); font-size:.95em;
+  }
+  .callout__icon{ flex-shrink:0; font-size:1.05em; margin-top:.05em; }
+  .callout p{ margin:0 0 .5em; }
+  .callout p:last-child{ margin:0; }
+  .callout--tip{ background:var(--teal-soft); border-color:rgba(69,196,176,.35); }
+  .callout--warn{ background:var(--rose-soft); border-color:rgba(226,99,122,.35); }
+  .callout--note{ background:var(--bg-panel); }
+
+  /* ---------- tables ---------- */
+  .table-wrap{ overflow-x:auto; margin:1.2em 0 1.4em; border:1px solid var(--border-soft); border-radius:10px; }
+  table{ width:100%; border-collapse:collapse; font-size:.9em; }
+  th,td{ text-align:left; padding:.65em .9em; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  thead th{ background:var(--bg-panel); font-family:var(--font-mono); font-size:.78em; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:500; }
+  tbody tr:last-child td{ border-bottom:none; }
+  td code{ white-space:nowrap; }
+  .col-maria{ color:var(--ink-dim); }
+  .col-pg{ color:var(--ink); }
+  .col-pg strong{ color:var(--gold); }
+
+  /* ---------- tabs ---------- */
+  .tabs{ margin:1.2em 0 1.4em; }
+  .tab-btns{ display:flex; gap:.4em; margin-bottom:0; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:var(--font-mono); font-size:.78em; padding:.5em .9em;
+    background:var(--bg-panel); border:1px solid var(--border); border-bottom:none;
+    border-radius:8px 8px 0 0; color:var(--ink-faint); cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--bg-code); color:var(--gold); border-color:var(--border); }
+  .tab-panels{ border:1px solid var(--border); border-radius:0 8px 8px 8px; background:var(--bg-code); }
+  .tab-panel{ display:none; padding:1em 1.1em; }
+  .tab-panel.active{ display:block; }
+  .tab-panel pre{ margin:0; }
+  .tab-panel code{ font-family:var(--font-mono); font-size:.85em; color:var(--ink); background:transparent; border:none; padding:0; }
+
+  /* ---------- deep dive (details) ---------- */
+  details.deepdive{
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:10px;
+    margin:1.3em 0; padding:.2em 0;
+  }
+  details.deepdive summary{
+    cursor:pointer; list-style:none; padding:.85em 1.05em; font-family:var(--font-mono);
+    font-size:.85em; color:var(--violet); display:flex; align-items:center; gap:.5em;
+  }
+  details.deepdive summary::-webkit-details-marker{ display:none; }
+  details.deepdive summary::before{ content:'▸'; transition:transform .15s ease; color:var(--violet); }
+  details.deepdive[open] summary::before{ transform:rotate(90deg); }
+  details.deepdive .deepdive-body{ padding:0 1.05em 1.05em; color:var(--ink-dim); font-size:.94em; }
+  details.deepdive .deepdive-body p:first-child{ margin-top:0; }
+
+  /* ---------- interactive widget shell ---------- */
+  .widget{
+    border:1px solid var(--border); border-radius:12px; background:var(--bg-panel);
+    margin:1.6em 0 1.8em; overflow:hidden;
+  }
+  .widget__head{
+    display:flex; align-items:center; justify-content:space-between; gap:1em;
+    padding:.8em 1.1em; border-bottom:1px solid var(--border-soft);
+  }
+  .widget__title{ font-family:var(--font-mono); font-size:.82em; color:var(--ink); display:flex; align-items:center; gap:.5em; }
+  .widget__tag{
+    font-family:var(--font-mono); font-size:.68em; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--bg); background:var(--teal); padding:.22em .55em; border-radius:5px;
+  }
+  .widget__body{ padding:1.1em; }
+  .btn{
+    font-family:var(--font-mono); font-size:.8em; padding:.55em 1em; border-radius:7px;
+    border:1px solid var(--border); background:var(--bg-elevated); color:var(--ink);
+    cursor:pointer; transition:border-color .15s ease, color .15s ease;
+  }
+  .btn:hover{ border-color:var(--teal); color:var(--teal); }
+  .btn.btn--accent{ background:var(--gold-soft); border-color:rgba(227,168,87,.4); color:var(--gold); }
+  .btn.btn--accent:hover{ border-color:var(--gold); }
+  .btn-row{ display:flex; gap:.6em; flex-wrap:wrap; margin-bottom:.9em; }
+  select{
+    font-family:var(--font-mono); font-size:.82em; padding:.5em .7em; border-radius:7px;
+    background:var(--bg-elevated); color:var(--ink); border:1px solid var(--border);
+  }
+  .out-line{ font-family:var(--font-mono); font-size:.85em; }
+  .out-label{ color:var(--ink-faint); font-size:.72em; text-transform:uppercase; letter-spacing:.05em; margin:.7em 0 .3em; }
+  .out-label:first-child{ margin-top:0; }
+
+  /* jsonb explorer */
+  #jsonb-explorer .jsonb-doc{
+    font-family:var(--font-mono); font-size:.85em; background:var(--bg-code);
+    border:1px solid var(--border-soft); border-radius:8px; padding:1em; margin-bottom:1em; color:var(--ink-dim);
+    white-space:pre;
+  }
+  .jsonb-op-row{ display:flex; gap:.4em; flex-wrap:wrap; margin:.8em 0; }
+  .jsonb-op{
+    font-family:var(--font-mono); font-size:.85em; padding:.45em .8em; border-radius:7px;
+    background:var(--bg-elevated); border:1px solid var(--border); color:var(--ink-dim); cursor:pointer;
+  }
+  .jsonb-op.active{ background:var(--teal-soft); border-color:var(--teal); color:var(--teal); }
+  .jsonb-result{ background:var(--bg-code); border:1px solid var(--border-soft); border-radius:8px; padding:.9em 1em; }
+  #jsonb-sql{ color:var(--gold); }
+  #jsonb-result{ color:var(--green); }
+  #jsonb-type{ color:var(--violet); }
+
+  /* mvcc */
+  .mvcc-tuple{
+    display:grid; grid-template-columns:2.2em 1fr auto auto; gap:.8em; align-items:center;
+    font-family:var(--font-mono); font-size:.82em; padding:.6em .8em; border-radius:8px;
+    background:var(--bg-code); border:1px solid var(--border-soft); margin-bottom:.5em;
+  }
+  .mvcc-tuple.dead{ opacity:.45; }
+  .mvcc-tuple.dead span:nth-child(2){ text-decoration:line-through; }
+  .mvcc-id{ color:var(--ink-faint); }
+  .mvcc-meta{ color:var(--ink-faint); font-size:.9em; }
+  .mvcc-tag{ font-size:.75em; padding:.2em .5em; border-radius:5px; text-transform:uppercase; letter-spacing:.03em; }
+  .mvcc-tuple.alive .mvcc-tag{ background:var(--green-soft); color:var(--green); }
+  .mvcc-tuple.dead .mvcc-tag{ background:var(--rose-soft); color:var(--rose); }
+  .mvcc-stats{ display:flex; gap:1.6em; margin:1em 0; font-family:var(--font-mono); font-size:.82em; color:var(--ink-dim); }
+  .mvcc-stats strong{ color:var(--gold); }
+  #mvcc-log{ font-family:var(--font-mono); font-size:.82em; color:var(--ink-dim); min-height:2.4em; }
+
+  /* quiz (index chooser) */
+  .quiz-question{ border:1px solid var(--border-soft); border-radius:10px; padding:1em; margin-bottom:1em; background:var(--bg-code); }
+  .quiz-question:last-child{ margin-bottom:0; }
+  .quiz-question p.q-text{ margin:0 0 .8em; color:var(--ink); font-size:.94em; }
+  .quiz-options{ display:flex; flex-wrap:wrap; gap:.5em; margin-bottom:.6em; }
+  .quiz-option{
+    font-family:var(--font-mono); font-size:.8em; padding:.5em .85em; border-radius:7px;
+    background:var(--bg-elevated); border:1px solid var(--border); color:var(--ink-dim); cursor:pointer;
+  }
+  .quiz-option.answered{ cursor:default; }
+  .quiz-option.correct{ background:var(--green-soft); border-color:var(--green); color:var(--green); }
+  .quiz-option.incorrect{ background:var(--rose-soft); border-color:var(--rose); color:var(--rose); }
+  .quiz-feedback{ font-size:.86em; color:var(--ink-dim); max-height:0; overflow:hidden; opacity:0; transition:.2s ease; }
+  .quiz-feedback.visible{ max-height:200px; opacity:1; margin-top:.5em; }
+  .quiz-score{ font-family:var(--font-mono); font-size:.82em; color:var(--ink-dim); }
+  .quiz-score strong{ color:var(--gold); }
+
+  /* booking demo */
+  .booking-timeline-wrap{ margin-bottom:1em; }
+  .booking-scale{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:.7em; color:var(--ink-faint); margin-bottom:.3em; }
+  .booking-timeline{ position:relative; height:3em; background:var(--bg-code); border:1px solid var(--border-soft); border-radius:8px; }
+  .booking-block{
+    position:absolute; top:.4em; bottom:.4em; background:var(--violet-soft); border:1px solid var(--violet);
+    border-radius:6px; font-family:var(--font-mono); font-size:.7em; color:var(--violet);
+    display:flex; align-items:center; padding:0 .5em; overflow:hidden; white-space:nowrap;
+  }
+  .booking-log{ font-family:var(--font-mono); font-size:.82em; margin-top:1em; padding:.8em 1em; border-radius:8px; border:1px solid var(--border-soft); background:var(--bg-code); color:var(--ink-dim); min-height:1.4em; }
+  .booking-log.log-fail{ border-color:rgba(226,99,122,.4); }
+  .booking-log .log-error{ color:var(--rose); font-weight:600; }
+  .booking-log.log-ok{ border-color:rgba(111,207,151,.4); color:var(--green); }
+
+  /* extension quiz */
+  .ext-row{ display:grid; grid-template-columns:1fr 12em; gap:1em; align-items:center; padding:.7em 0; border-bottom:1px solid var(--border-soft); }
+  .ext-row:last-of-type{ border-bottom:none; }
+  .ext-row p{ margin:0; font-size:.9em; color:var(--ink-dim); }
+  .ext-row select{ width:100%; }
+  .ext-row.row-correct select{ border-color:var(--green); color:var(--green); }
+  .ext-row.row-incorrect select{ border-color:var(--rose); color:var(--rose); }
+
+  /* cache flow */
+  .flow-diagram{ display:flex; align-items:center; justify-content:center; gap:.4em; padding:1.2em 0; }
+  .flow-node{
+    font-family:var(--font-mono); font-size:.85em; padding:1em 1.2em; border-radius:10px;
+    background:var(--bg-code); border:1px solid var(--border); color:var(--ink-dim); text-align:center;
+    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .flow-node.active{ border-color:var(--teal); color:var(--teal); box-shadow:0 0 0 3px var(--teal-soft); }
+  .flow-connector{ display:flex; flex-direction:column; align-items:center; gap:.1em; min-width:2.4em; }
+  .flow-arrow{ font-size:1.1em; color:var(--border); opacity:.5; transition:.2s ease; }
+  .flow-arrow.active{ color:var(--teal); opacity:1; transform:scale(1.25); }
+  #cache-log{ font-family:var(--font-mono); font-size:.82em; color:var(--ink-dim); text-align:center; min-height:1.4em; margin-top:.6em; }
+
+  /* footer */
+  footer{ max-width:var(--maxw); border-top:1px solid var(--border-soft); padding-top:2em; color:var(--ink-faint); font-size:.85em; }
+  footer a{ color:var(--ink-dim); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr; }
+    .sidebar{ display:none; }
+    .mobile-toc{ display:block; margin:0 0 2em; }
+    .mobile-toc summary{
+      cursor:pointer; list-style:none; font-family:var(--font-mono); font-size:.8em;
+      padding:.8em 1em; background:var(--bg-panel); border:1px solid var(--border); border-radius:8px; color:var(--gold);
+    }
+    .mobile-toc summary::-webkit-details-marker{ display:none; }
+    .mobile-toc .toc{ margin-top:.5em; }
+    main{ padding:1.6em 1.2em 4em; }
+    .hero h1{ font-size:1.9em; }
+    .ext-row{ grid-template-columns:1fr; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Ga naar inhoud</a>
+<div id="progress-bar"></div>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Inhoudsopgave">
+    <div class="sidebar__brand"><span class="elephant">🐘</span> postgresql · veldgids</div>
+    <ul class="toc">
+      <li><a href="#ch-01"><span class="num">01</span> Filosofie</a></li>
+      <li><a href="#ch-02"><span class="num">02</span> Datatypes</a></li>
+      <li><a href="#ch-03"><span class="num">03</span> MVCC</a></li>
+      <li><a href="#ch-04"><span class="num">04</span> Indexen</a></li>
+      <li><a href="#ch-05"><span class="num">05</span> Querytechnieken</a></li>
+      <li><a href="#ch-06"><span class="num">06</span> Constraints</a></li>
+      <li><a href="#ch-07"><span class="num">07</span> LISTEN/NOTIFY</a></li>
+      <li><a href="#ch-08"><span class="num">08</span> Partitionering</a></li>
+      <li><a href="#ch-09"><span class="num">09</span> Replicatie</a></li>
+      <li><a href="#ch-10"><span class="num">10</span> Extensies</a></li>
+      <li><a href="#ch-11"><span class="num">11</span> Postgres + Redis</a></li>
+      <li><a href="#ch-12"><span class="num">12</span> FastAPI-praktijk</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+
+    <details class="mobile-toc">
+      <summary>Inhoudsopgave ▾</summary>
+      <ul class="toc">
+        <li><a href="#ch-01"><span class="num">01</span> Filosofie</a></li>
+        <li><a href="#ch-02"><span class="num">02</span> Datatypes</a></li>
+        <li><a href="#ch-03"><span class="num">03</span> MVCC</a></li>
+        <li><a href="#ch-04"><span class="num">04</span> Indexen</a></li>
+        <li><a href="#ch-05"><span class="num">05</span> Querytechnieken</a></li>
+        <li><a href="#ch-06"><span class="num">06</span> Constraints</a></li>
+        <li><a href="#ch-07"><span class="num">07</span> LISTEN/NOTIFY</a></li>
+        <li><a href="#ch-08"><span class="num">08</span> Partitionering</a></li>
+        <li><a href="#ch-09"><span class="num">09</span> Replicatie</a></li>
+        <li><a href="#ch-10"><span class="num">10</span> Extensies</a></li>
+        <li><a href="#ch-11"><span class="num">11</span> Postgres + Redis</a></li>
+        <li><a href="#ch-12"><span class="num">12</span> FastAPI-praktijk</a></li>
+      </ul>
+    </details>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="hero__eyebrow">// twaalf hoofdstukken · interactief</div>
+      <h1>PostgreSQL, voorbij wat <em>elke</em> SQL-database kan</h1>
+      <p class="hero__lead">
+        Je kent MariaDB al: tabellen, indexen, transacties, joins — dat fundament sla ik over.
+        Dit document zoomt in op wat PostgreSQL <strong>extra</strong> doet: datatypes die verder gaan dan
+        <code>VARCHAR</code> en <code>JSON</code>, een ander intern model voor transacties, indexen voor
+        gevallen waar B-tree tekortschiet, en een uitbreidingsmechanisme waarmee de database zelf meegroeit
+        met wat je nodig hebt. Overal waar het relevant is, leg ik de brug naar een FastAPI-backend met
+        Redis ernaast — zonder al naar het eindproject toe te werken.
+      </p>
+      <div class="terminal">
+        <div class="terminal__bar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="label">psql — postgres@localhost</span>
+        </div>
+        <div class="terminal__body">
+          <span class="terminal__prompt">postgres=# </span><span id="terminal-line"></span><span class="terminal__cursor"></span>
+        </div>
+      </div>
+      <div class="chip-row">
+        <span class="chip">JSONB &amp; arrays</span>
+        <span class="chip">MVCC-intern</span>
+        <span class="chip">GIN / GiST / BRIN</span>
+        <span class="chip">CTE &amp; window functions</span>
+        <span class="chip">EXCLUDE &amp; WITHOUT OVERLAPS</span>
+        <span class="chip">LISTEN/NOTIFY</span>
+        <span class="chip">Partitionering</span>
+        <span class="chip">Extensies</span>
+        <span class="chip">Redis-caching</span>
+      </div>
+    </section>
+
+    <!-- ================= 01 FILOSOFIE ================= -->
+    <section class="chapter" id="ch-01">
+      <div class="chapter-head"><span class="num">01</span><h2>Filosofie: waarom Postgres anders aanvoelt</h2></div>
+      <p class="chapter__intro">
+        MariaDB en PostgreSQL lossen "een SQL-database bouwen" op met een andere grondgedachte, en dat
+        verklaart bijna elk verschil verderop in dit document.
+      </p>
+
+      <p>
+        MariaDB is gebouwd rond <strong>vervangbare storage-engines</strong>: InnoDB voor transacties, Aria
+        voor lichte workloads, ColumnStore voor analytics, MyRocks voor schrijfzware workloads — je kiest
+        de motor per tabel. PostgreSQL doet het omgekeerde: er is precies <strong>één storage-engine</strong>,
+        maar bijna alles daarboven is uitbreidbaar. Je kan zelf nieuwe datatypes registreren, nieuwe
+        indexmethodes toevoegen, functies schrijven in Python of PL/pgSQL, en zelfs externe databases laten
+        aanvoelen als een lokale tabel via <em>foreign data wrappers</em>. Die uitbreidbaarheid is precies
+        waarom PostgreSQL het "Perl van de databases" wordt genoemd: het is niet één product, het is een
+        platform waar features als JSONB, PostGIS en TimescaleDB bovenop zijn gebouwd zonder de kernbroncode
+        aan te raken.
+      </p>
+
+      <p>
+        Een tweede verschil: PostgreSQL volgt de SQL-standaard opvallend strikt en implementeert features
+        vaak het eerst of het volledigst — window functions, recursieve CTE's, echte <code>SERIALIZABLE</code>
+        isolatie, <code>MERGE</code>. MariaDB (en MySQL) hebben historisch pragmatischer gekozen: sneller
+        shippen, soms met een eigen syntax-dialect. Geen van beide is "fout" — het is een andere prioriteit.
+      </p>
+
+      <div class="callout callout--note">
+        <span class="callout__icon">🗓️</span>
+        <div>
+          <p>
+            De actuele stabiele release is <strong>PostgreSQL 18</strong> (september 2025); versie 19 is
+            sinds juni 2026 in bèta. Waar een feature pas sinds een specifieke versie bestaat, vermeld ik dat
+            expliciet — dat is relevant zodra je een concrete serverversie kiest voor een project.
+          </p>
+        </div>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Wat dit document wél en niet doet</h3>
+      <p>
+        Ik ga ervan uit dat je vertrouwd bent met gewone SQL: <code>SELECT</code>, <code>JOIN</code>,
+        transacties, primaire/vreemde sleutels, gewone B-tree-indexen. Elk hoofdstuk hieronder behandelt iets
+        wat in een standaard-SQL-database ofwel niet bestaat, ofwel merkbaar zwakker is uitgewerkt. Het
+        einddoel — een cashless betaalsysteem — komt hier bewust niet aan bod; de voorbeelden zijn generiek
+        zodat je het concept kan loskoppelen van die ene toepassing.
+      </p>
+    </section>
+
+    <!-- ================= 02 DATATYPES ================= -->
+    <section class="chapter" id="ch-02">
+      <div class="chapter-head"><span class="num">02</span><h2>Geavanceerde datatypes</h2></div>
+      <p class="chapter__intro">
+        Dit is waarschijnlijk het meest zichtbare verschil in je dagelijkse werk: PostgreSQL heeft een
+        rijkere kolom-toolbox, en die kolommen zijn <em>ook indexeerbaar</em> — niet enkel handig om in op te
+        slaan.
+      </p>
+
+      <h3><span class="h3-icon">▸</span>JSONB: binaire JSON, niet tekst-met-een-label</h3>
+      <p>
+        <code>json</code> in PostgreSQL slaat de exacte tekst op (inclusief witruimte en dubbele keys) en
+        parseert die opnieuw bij elke bewerking. <code>jsonb</code> ontleedt het document bij het invoegen tot
+        een binair, genest formaat: iets trager om te schrijven, veel sneller om te doorzoeken, en —
+        cruciaal — <strong>indexeerbaar</strong>.
+      </p>
+
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE TABLE orders (
+    id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id integer NOT NULL,
+    payload  jsonb NOT NULL
+);
+
+INSERT INTO orders (customer_id, payload) VALUES
+    (42, '{"items": [{"sku": "A1", "qty": 2}],
+           "status": "paid",
+           "meta": {"channel": "web"}}');
+
+-- Padnavigatie
+SELECT payload -> 'items'          FROM orders;  -- jsonb
+SELECT payload ->> 'status'        FROM orders;  -- text
+SELECT payload #> '{meta,channel}' FROM orders;   -- pad, als jsonb
+
+-- "Bevat dit document dit fragment?" — de kernquery voor JSONB
+SELECT * FROM orders WHERE payload @> '{"status": "paid"}';
+
+-- Index die @>, ? en verwante operatoren versnelt
+CREATE INDEX idx_orders_payload ON orders USING GIN (payload);</code></pre>
+      </div>
+
+      <div class="vs-badge">
+        <span class="vs-badge__tag">vs MariaDB</span>
+        <p>
+          MariaDB's <code>JSON</code>-type is een <strong>alias voor <code>LONGTEXT</code></strong> met een
+          <code>JSON_VALID()</code>-check erbovenop — geen binair formaat, geen native index op een JSON-pad.
+          De gangbare omweg is een virtuele gegenereerde kolom met een gewone (functionele) index erop. In
+          MySQL zelf ligt dat anders: dat heeft sinds 5.7 wél een echt binair JSON-type. "MariaDB-compatibel"
+          en "MySQL-compatibel" zijn dus niet hetzelfde zodra JSON in het spel is.
+        </p>
+      </div>
+
+      <div class="widget" id="jsonb-explorer">
+        <div class="widget__head">
+          <span class="widget__title">🔍 JSONB-operator-verkenner</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <div class="jsonb-doc">{
+  "items": [{"sku": "A1", "qty": 2}],
+  "status": "paid",
+  "meta": {"channel": "web"}
+}</div>
+          <label for="jsonb-path" style="font-family:var(--font-mono);font-size:.78em;color:var(--ink-faint);">kies een pad →</label><br>
+          <select id="jsonb-path" style="margin-top:.4em;">
+            <option value="status">status</option>
+            <option value="items">items</option>
+            <option value="meta.channel">meta.channel</option>
+          </select>
+          <div class="jsonb-op-row">
+            <button class="jsonb-op active" data-op="->">-&gt;</button>
+            <button class="jsonb-op" data-op="->>">-&gt;&gt;</button>
+            <button class="jsonb-op" data-op="#>">#&gt;</button>
+            <button class="jsonb-op" data-op="#>>">#&gt;&gt;</button>
+            <button class="jsonb-op" data-op="@>">@&gt;</button>
+          </div>
+          <div class="jsonb-result">
+            <div class="out-label">query</div>
+            <div class="out-line" id="jsonb-sql"></div>
+            <div class="out-label">resultaat</div>
+            <div class="out-line" id="jsonb-result"></div>
+            <div class="out-label">type</div>
+            <div class="out-line" id="jsonb-type"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout--tip">
+        <span class="callout__icon">💡</span>
+        <p>
+          Vuistregel: <code>-&gt;</code>/<code>#&gt;</code> geven <code>jsonb</code> terug (handig om te
+          blijven doorpadnavigeren), <code>-&gt;&gt;</code>/<code>#&gt;&gt;</code> geven <code>text</code>
+          terug (handig om te vergelijken of te casten). Merk op dat <code>-&gt;&gt;</code> op een array of
+          object ook gewoon werkt — je krijgt dan de JSON-tekstrepresentatie terug, geen fout.
+        </p>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Native arrays</h3>
+      <p>
+        Elke kolomtype kan een array van dat type zijn — geen aparte junctietabel nodig voor eenvoudige
+        lijsten zoals tags.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE TABLE products (
+    id   serial PRIMARY KEY,
+    name text,
+    tags text[]
+);
+
+INSERT INTO products (name, tags) VALUES ('Arduino Uno', ARRAY['electronics','maker','3v3']);
+
+SELECT * FROM products WHERE 'maker' = ANY(tags);        -- bevat element
+SELECT * FROM products WHERE tags @> ARRAY['maker'];      -- containment
+SELECT unnest(tags) FROM products;                        -- terug naar rijen
+
+CREATE INDEX idx_products_tags ON products USING GIN (tags);</code></pre>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>UUID: gen_random_uuid() en het nieuwe uuidv7()</h3>
+      <p>
+        <code>uuid</code> is een eersteklas 16-byte type, geen <code>CHAR(36)</code>-string. Sinds
+        PostgreSQL&nbsp;13 zit <code>gen_random_uuid()</code> ingebouwd in de core (voorheen had je de
+        <code>pgcrypto</code>-extensie nodig). Sinds PostgreSQL&nbsp;18 is er ook <code>uuidv7()</code>: een
+        tijd-gesorteerde UUID, waarbij de eerste bytes een timestamp coderen.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Functie</th><th>Type</th><th>Sortering</th><th>Wanneer kiezen</th></tr></thead>
+          <tbody>
+            <tr><td><code>gen_random_uuid()</code></td><td>UUIDv4 (random)</td><td class="col-pg">willekeurig</td><td>geen aanname over volgorde nodig</td></tr>
+            <tr><td><code>uuidv7()</code></td><td class="col-pg"><strong>UUIDv7</strong> (tijd + random)</td><td class="col-pg">chronologisch</td><td>primaire sleutel op een grote, snel-groeiende tabel — betere B-tree-lokaliteit, minder pagina-fragmentatie bij inserts</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout--note">
+        <span class="callout__icon">📎</span>
+        <p>
+          Waarom dat lokaliteitsverschil er is: een volledig willekeurige UUIDv4-sleutel spreidt inserts over
+          de hele B-tree-index, wat leidt tot willekeurige schijftoegang en een index die trager groeit in
+          cache-vriendelijkheid. UUIDv7 gedraagt zich in die zin meer als een oplopende <code>bigserial</code>,
+          terwijl je toch de voordelen van een globaal unieke, niet-voorspelbare sleutel behoudt.
+        </p>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>ENUM, ranges en samengestelde types</h3>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">-- ENUM: gevalideerd door de database, niet enkel door je applicatiecode
+CREATE TYPE order_status AS ENUM ('pending', 'paid', 'refunded', 'cancelled');
+ALTER TABLE orders ADD COLUMN status order_status DEFAULT 'pending';
+
+-- Range types: één kolom voor een interval, met eigen operatoren
+CREATE TABLE price_history (
+    product_id integer,
+    price      numeric,
+    valid_for  daterange
+);
+SELECT * FROM price_history WHERE valid_for @> CURRENT_DATE;      -- bevat dit punt?
+SELECT * FROM price_history WHERE valid_for && daterange('2026-08-01','2026-09-01');  -- overlapt?
+
+-- Composite type: een eigen "struct"
+CREATE TYPE address AS (street text, city text, postcode text);</code></pre>
+      </div>
+      <p>
+        Die <code>daterange</code>/<code>tstzrange</code>-types zijn hier bewust kort geïntroduceerd — in
+        hoofdstuk 06 blijkt waarom ze de basis vormen van een van de meest onderschatte PostgreSQL-features:
+        constraints die overlap zelf tegenhouden.
+      </p>
+
+      <h3><span class="h3-icon">▸</span>Netwerktypes &amp; full-text search</h3>
+      <p>
+        Twee kleinere maar handige categorieën: native netwerktypes (relevant gezien je netwerkachtergrond)
+        en ingebouwde tekstzoek-types.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">-- inet/cidr: validatie én subnet-operatoren, geen VARCHAR met regex
+CREATE TABLE access_log (id serial, client inet, allowed_from cidr);
+SELECT * FROM access_log WHERE client &lt;&lt;= allowed_from;   -- zit client-IP in dit subnet?
+
+-- Full-text search: tsvector/tsquery + GIN-index, geen LIKE '%...%'
+ALTER TABLE products ADD COLUMN search tsvector
+    GENERATED ALWAYS AS (to_tsvector('dutch', name)) STORED;
+CREATE INDEX idx_products_search ON products USING GIN (search);
+SELECT * FROM products WHERE search @@ plainto_tsquery('dutch', 'arduino maker');</code></pre>
+      </div>
+
+      <details class="deepdive">
+        <summary>Dieper: hstore, nog steeds tegenkomen in oudere code</summary>
+        <div class="deepdive-body">
+          <p>
+            Vóór <code>jsonb</code> bestond (PostgreSQL &lt; 9.4) was <code>hstore</code> de manier om
+            key-value-paren in één kolom te stoppen — een platte tekst-naar-tekst map, geen geneste structuur.
+            Je vindt het nog in legacy-schema's en het is nog steeds sneller voor puur platte key-value-opslag,
+            maar voor nieuw werk is <code>jsonb</code> vrijwel altijd de betere keuze: geneste structuren,
+            rijkere operatoren, en dezelfde GIN-indexeerbaarheid.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= 03 MVCC ================= -->
+    <section class="chapter" id="ch-03">
+      <div class="chapter-head"><span class="num">03</span><h2>MVCC: hoe een UPDATE écht werkt</h2></div>
+      <p class="chapter__intro">
+        Zowel InnoDB als PostgreSQL gebruiken <em>multi-version concurrency control</em> zodat lezers nooit
+        blokkeren op schrijvers. Maar de manier waarop ze oude versies bewaren, verschilt fundamenteel — en
+        dat verklaart waarom PostgreSQL <code>VACUUM</code> nodig heeft en InnoDB niet.
+      </p>
+
+      <div class="vs-badge">
+        <span class="vs-badge__tag">vs MariaDB (InnoDB)</span>
+        <p>
+          InnoDB werkt <strong>in-place</strong>: de rij wordt direct aangepast, en de oude waarde gaat naar
+          een apart <em>undo log</em> (rollback-segment) zodat lopende transacties de oude versie nog kunnen
+          zien. PostgreSQL past de rij <strong>nooit</strong> in-place aan: een <code>UPDATE</code> schrijft
+          een volledig nieuwe rijversie (tuple) ergens in de tabel-heap, en markeert de oude als dood. De oude
+          versie blijft fysiek liggen tot <code>VACUUM</code> ze opruimt.
+        </p>
+      </div>
+
+      <p>
+        Elke tuple heeft twee onzichtbare systeemkolommen: <code>xmin</code> (transactie-ID die de rij
+        aanmaakte) en <code>xmax</code> (transactie-ID die de rij "verwijderde" — bij een UPDATE is dat de
+        oude versie). Een lezende transactie ziet enkel tuples waarvan <code>xmin</code> voor haar snapshot
+        gecommit is én <code>xmax</code> nog niet — dat is de kern van MVCC in PostgreSQL, zonder locks.
+      </p>
+
+      <div class="widget" id="mvcc-demo">
+        <div class="widget__head">
+          <span class="widget__title">🧬 Tuple-versies live volgen</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <p style="font-size:.88em;color:var(--ink-dim);margin-bottom:1em;">
+            Tabel <code>orders</code>, rij <code>id = 1</code>. Voer een <code>UPDATE</code> uit en kijk wat
+            er ontstaat, voer dan <code>VACUUM</code> uit om op te ruimen.
+          </p>
+          <div class="btn-row">
+            <button class="btn btn--accent" id="mvcc-update">UPDATE orders SET balance = balance - 10</button>
+            <button class="btn" id="mvcc-vacuum">VACUUM orders</button>
+          </div>
+          <div id="mvcc-rows"></div>
+          <div class="mvcc-stats">
+            <span>dode tuples: <strong id="mvcc-dead-count">0</strong></span>
+          </div>
+          <div id="mvcc-log">Klik op UPDATE om te beginnen.</div>
+        </div>
+      </div>
+
+      <div class="callout callout--warn">
+        <span class="callout__icon">⚠️</span>
+        <p>
+          Dit is de reden waarom een tabel met veel <code>UPDATE</code>s en een te trage
+          <code>autovacuum</code> kan "opzwellen" (<em>bloat</em>): de tabel op schijf wordt groter dan de
+          data die ze bevat, omdat dode tuples blijven liggen. In productie is <code>autovacuum</code>-tuning
+          — niet het uitschakelen ervan — een van de eerste dingen om te controleren bij een schrijfzware
+          tabel.
+        </p>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Isolatieniveaus: PostgreSQL doet écht SERIALIZABLE</h3>
+      <p>
+        Het standaardniveau is <code>READ COMMITTED</code>, net als bij InnoDB. Het verschil zit in het
+        strengste niveau: PostgreSQL's <code>SERIALIZABLE</code> is <em>Serializable Snapshot Isolation</em>
+        (sinds 9.1) — de database detecteert gevaarlijke concurrency-patronen tussen transacties (niet enkel
+        rij-conflicten) en laat er één falen met een <code>serialization_failure</code>, in plaats van stil
+        een inconsistent resultaat toe te staan. Dat is een garantie die veel systemen enkel op papier bieden.
+      </p>
+    </section>
+
+    <!-- ================= 04 INDEXEN ================= -->
+    <section class="chapter" id="ch-04">
+      <div class="chapter-head"><span class="num">04</span><h2>Indexen voorbij B-tree</h2></div>
+      <p class="chapter__intro">
+        B-tree ken je al — gelijkheid en bereik, dat werkt overal hetzelfde. PostgreSQL breidt dat uit met
+        indexmethodes voor data die geen natuurlijke lineaire volgorde heeft.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Goed voor</th><th>Voorbeeld</th></tr></thead>
+          <tbody>
+            <tr><td><strong>B-tree</strong></td><td>gelijkheid, bereik, sortering (het standaardgeval)</td><td><code>WHERE email = ...</code></td></tr>
+            <tr><td><strong>GIN</strong></td><td>"bevat dit element" in samengestelde waarden</td><td><code>jsonb</code>, arrays, full-text</td></tr>
+            <tr><td><strong>GiST</strong></td><td>geometrie, ranges, nearest-neighbor, exclusion constraints</td><td>overlappende periodes, locaties</td></tr>
+            <tr><td><strong>BRIN</strong></td><td>enorme, fysiek gesorteerde tabellen (append-only)</td><td>logtabellen op <code>created_at</code></td></tr>
+            <tr><td><strong>Hash</strong></td><td>pure gelijkheid, iets compacter dan B-tree</td><td>zelden de eerste keuze; B-tree kan bijna alles net zo goed</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Twee kruisingen daarmee die vaak over het hoofd worden gezien:
+      </p>
+      <ul>
+        <li><strong>Partiële index</strong> — indexeer enkel de rijen die je effectief opzoekt: <code>CREATE INDEX ON orders (id) WHERE status = 'pending';</code>. Kleiner, sneller te onderhouden, en de planner gebruikt hem automatisch zodra je query dezelfde <code>WHERE</code> bevat.</li>
+        <li><strong>Expressie-index</strong> — indexeer het resultaat van een functie, niet de ruwe kolom: <code>CREATE INDEX ON users (lower(email));</code> maakt <code>WHERE lower(email) = 'ian@x.be'</code> een index-scan in plaats van een sequential scan.</li>
+        <li><strong>Covering index (<code>INCLUDE</code>)</strong> — voeg extra kolommen toe die niet meetellen voor de sortering maar wel meegeleverd worden, zodat een query volledig <em>index-only</em> beantwoord kan worden zonder de tabel-heap te raken.</li>
+      </ul>
+
+      <div class="widget" id="index-quiz">
+        <div class="widget__head">
+          <span class="widget__title">🎯 Welke index kies je?</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <p style="font-size:.85em;color:var(--ink-faint);margin-bottom:1em;">
+            Score: <span class="quiz-score"><strong id="index-quiz-score">0</strong>/5</span>
+          </p>
+
+          <div class="quiz-question" data-correct="btree">
+            <p class="q-text">1. <code>WHERE email = 'ian@example.com'</code> op een unieke kolom.</p>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="btree">B-tree</button>
+              <button class="quiz-option" data-value="gin">GIN</button>
+              <button class="quiz-option" data-value="brin">BRIN</button>
+              <button class="quiz-option" data-value="gist">GiST</button>
+            </div>
+            <div class="quiz-feedback">Gewone gelijkheid op een scalaire kolom → B-tree, de standaardkeuze in vrijwel elk geval.</div>
+          </div>
+
+          <div class="quiz-question" data-correct="gin">
+            <p class="q-text">2. <code>WHERE payload @&gt; '{"status":"paid"}'</code> op een <code>jsonb</code>-kolom.</p>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="btree">B-tree</button>
+              <button class="quiz-option" data-value="gin">GIN</button>
+              <button class="quiz-option" data-value="brin">BRIN</button>
+              <button class="quiz-option" data-value="hash">Hash</button>
+            </div>
+            <div class="quiz-feedback">Containment-checks op geneste/samengestelde waarden (jsonb, arrays, full-text) → GIN.</div>
+          </div>
+
+          <div class="quiz-question" data-correct="brin">
+            <p class="q-text">3. Een logtabel van 500 miljoen rijen, ingevoegd in tijdsvolgorde, query op <code>created_at &gt; now() - interval '1 day'</code>.</p>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="btree">B-tree</button>
+              <button class="quiz-option" data-value="gin">GIN</button>
+              <button class="quiz-option" data-value="brin">BRIN</button>
+              <button class="quiz-option" data-value="gist">GiST</button>
+            </div>
+            <div class="quiz-feedback">Data die fysiek al gesorteerd op schijf staat → BRIN: een fractie van de grootte van B-tree, want het slaat enkel min/max per blok op.</div>
+          </div>
+
+          <div class="quiz-question" data-correct="partial">
+            <p class="q-text">4. <code>WHERE status = 'pending'</code>, maar 99% van de rijen heeft <code>status = 'completed'</code>.</p>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="btree">Gewone B-tree op status</button>
+              <button class="quiz-option" data-value="partial">Partiële index <code>WHERE status='pending'</code></button>
+              <button class="quiz-option" data-value="brin">BRIN</button>
+            </div>
+            <div class="quiz-feedback">Als je enkel de zeldzame waarde ooit opzoekt, indexeer dan enkel die rijen — kleiner en efficiënter dan de hele kolom indexeren.</div>
+          </div>
+
+          <div class="quiz-question" data-correct="gist">
+            <p class="q-text">5. <code>ORDER BY location &lt;-&gt; point(4.35, 50.85) LIMIT 5</code> — dichtstbijzijnde 5 punten.</p>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="btree">B-tree</button>
+              <button class="quiz-option" data-value="gin">GIN</button>
+              <button class="quiz-option" data-value="gist">GiST</button>
+              <button class="quiz-option" data-value="brin">BRIN</button>
+            </div>
+            <div class="quiz-feedback">Nearest-neighbor en geometrische/range-operatoren → GiST, gebouwd voor "hoe dicht/hoezeer overlapt dit".</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 05 QUERYTECHNIEKEN ================= -->
+    <section class="chapter" id="ch-05">
+      <div class="chapter-head"><span class="num">05</span><h2>Krachtige querytechnieken</h2></div>
+      <p class="chapter__intro">
+        Een reeks SQL-features die de standaard voorschrijft, maar die PostgreSQL vollediger of eerder
+        implementeert dan de meeste andere databases.
+      </p>
+
+      <h3><span class="h3-icon">▸</span>UPSERT: ON CONFLICT</h3>
+      <div class="tabs">
+        <div class="tab-btns">
+          <button class="tab-btn active" data-tab="maria">MariaDB / MySQL</button>
+          <button class="tab-btn" data-tab="pg">PostgreSQL</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" data-tab-panel="maria"><pre><code class="language-sql">INSERT INTO stock (sku, qty) VALUES ('A1', 5)
+ON DUPLICATE KEY UPDATE qty = qty + VALUES(qty);
+-- werkt enkel via de bestaande unieke/primaire sleutel,
+-- geen controle over WHICH conflict getriggerd werd</code></pre></div>
+          <div class="tab-panel" data-tab-panel="pg"><pre><code class="language-sql">INSERT INTO stock (sku, qty) VALUES ('A1', 5)
+ON CONFLICT (sku) DO UPDATE
+    SET qty = stock.qty + EXCLUDED.qty
+    WHERE stock.qty < 1000
+RETURNING *;
+-- je kiest expliciet welke constraint het conflict afvangt,
+-- kan een voorwaarde toevoegen, en direct het resultaat terugkrijgen</code></pre></div>
+        </div>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Recursieve CTE's</h3>
+      <p>Hiërarchische data (org-structuren, categorieën, boomstructuren) zonder applicatiecode die recursief queryt:</p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">WITH RECURSIVE org_chart AS (
+    SELECT id, name, manager_id, 1 AS depth
+    FROM employees WHERE manager_id IS NULL
+    UNION ALL
+    SELECT e.id, e.name, e.manager_id, oc.depth + 1
+    FROM employees e
+    JOIN org_chart oc ON e.manager_id = oc.id
+)
+SELECT * FROM org_chart ORDER BY depth;</code></pre>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Window functions</h3>
+      <p>Berekeningen over een venster van rijen, zonder de resultaatset zelf te reduceren zoals <code>GROUP BY</code> doet:</p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">SELECT
+    customer_id,
+    created_at,
+    amount,
+    SUM(amount) OVER (PARTITION BY customer_id ORDER BY created_at) AS lopend_totaal,
+    RANK()      OVER (PARTITION BY customer_id ORDER BY amount DESC) AS rang
+FROM orders;</code></pre>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>RETURNING — nu ook met OLD en NEW (PG 18)</h3>
+      <p>
+        <code>RETURNING</code> geeft gewijzigde rijen direct terug zonder een aparte <code>SELECT</code> —
+        onmisbaar in een API die na een <code>INSERT</code>/<code>UPDATE</code> meteen het volledige object
+        wil serialiseren. Sinds PostgreSQL&nbsp;18 kan je ook <code>OLD</code> en <code>NEW</code> apart
+        opvragen bij een <code>UPDATE</code>:
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">UPDATE orders SET status = 'paid'
+WHERE id = 1
+RETURNING OLD.status AS vorige_status, NEW.status AS nieuwe_status;</code></pre>
+      </div>
+
+      <details class="deepdive">
+        <summary>Dieper: LATERAL joins en FILTER</summary>
+        <div class="deepdive-body">
+          <p>
+            <strong>LATERAL</strong> laat een subquery rechts van een <code>JOIN</code> verwijzen naar
+            kolommen van de rij links ervan — ideaal voor "top-N per groep": bijvoorbeeld de 3 meest recente
+            bestellingen per klant, zonder een window function en een extra filter-stap.
+          </p>
+          <div class="code-block" style="margin:1em 0 0;">
+            <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+            <pre><code class="language-sql">SELECT c.name, recent.*
+FROM customers c
+CROSS JOIN LATERAL (
+    SELECT id, created_at FROM orders
+    WHERE orders.customer_id = c.id
+    ORDER BY created_at DESC LIMIT 3
+) AS recent;</code></pre>
+          </div>
+          <p style="margin-top:1em;">
+            <strong>FILTER</strong> laat je meerdere voorwaardelijke aggregaten in één <code>SELECT</code>
+            zetten zonder een woud van <code>CASE WHEN</code>:
+          </p>
+          <div class="code-block" style="margin:1em 0 0;">
+            <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+            <pre><code class="language-sql">SELECT
+    count(*) FILTER (WHERE status = 'paid')      AS betaald,
+    count(*) FILTER (WHERE status = 'cancelled')  AS geannuleerd
+FROM orders;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= 06 CONSTRAINTS ================= -->
+    <section class="chapter" id="ch-06">
+      <div class="chapter-head"><span class="num">06</span><h2>Constraints die verder gaan</h2></div>
+      <p class="chapter__intro">
+        <code>CHECK</code> en foreign keys ken je al. Dit hoofdstuk gaat over constraints die een hele
+        categorie applicatiebugs elimineren door de database de regel te laten afdwingen in plaats van je
+        eigen code.
+      </p>
+
+      <div class="vs-badge">
+        <span class="vs-badge__tag">vs MariaDB</span>
+        <p>
+          Er bestaat geen MariaDB-equivalent voor exclusion- of temporal constraints. Het gangbare patroon
+          daar is: applicatielogica die controleert op overlap vóór de <code>INSERT</code>, met alle
+          race-condition-risico's van dien onder gelijktijdige schrijvers.
+        </p>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Het probleem: overlappende periodes</h3>
+      <p>
+        Stel: een werkplaats-reservering mag nooit overlappen met een bestaande reservering voor diezelfde
+        ruimte. Vóór PostgreSQL&nbsp;18 loste je dat op met een <strong>exclusion constraint</strong> op een
+        GiST-index:
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+CREATE TABLE bookings (
+    room_id integer,
+    during  tsrange,
+    EXCLUDE USING gist (room_id WITH =, during WITH &&)
+);</code></pre>
+      </div>
+      <p>
+        Sinds PostgreSQL&nbsp;18 kan hetzelfde declaratief via <code>WITHOUT OVERLAPS</code>, leesbaarder en
+        rechtstreeks op de primaire/unieke sleutel:
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+CREATE TABLE bookings (
+    room_id integer,
+    during  tsrange NOT NULL,
+    guest   text,
+    PRIMARY KEY (room_id, during WITHOUT OVERLAPS)
+);
+-- functioneel identiek aan de EXCLUDE-versie hierboven,
+-- maar leesbaar als "wat" in plaats van "hoe"</code></pre>
+      </div>
+
+      <div class="widget" id="booking-demo">
+        <div class="widget__head">
+          <span class="widget__title">🗓️ Probeer een overlap te forceren</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <div class="booking-timeline-wrap">
+            <div class="booking-scale"><span>08u</span><span>11u</span><span>14u</span><span>17u</span><span>20u</span></div>
+            <div class="booking-timeline" id="booking-timeline"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn booking-try" data-start="10" data-end="12" data-label="Lasercutter — nieuw">10u–12u toevoegen (overlapt)</button>
+            <button class="btn btn--accent booking-try" data-start="15" data-end="16" data-label="3D-printer — nieuw">15u–16u toevoegen (vrij)</button>
+          </div>
+          <div class="booking-log" id="booking-log">Kies een reservering om toe te voegen.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Temporal foreign keys: PERIOD</h3>
+      <p>
+        Ook referentiële integriteit kan tijdsgebonden: een <code>PERIOD</code>-foreign key controleert dat
+        de periode van de rij volledig binnen de periode van de referentie valt, niet enkel dat de sleutel
+        bestaat.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE TABLE room_capacity (
+    room_id integer,
+    available_period tsrange NOT NULL,
+    PRIMARY KEY (room_id, available_period WITHOUT OVERLAPS)
+);
+
+CREATE TABLE bookings (
+    room_id integer,
+    booked_period tsrange NOT NULL,
+    PERIOD FOREIGN KEY (room_id, booked_period)
+        REFERENCES room_capacity (room_id, available_period)
+);
+-- een boeking kan enkel bestaan binnen een periode waarin de ruimte
+-- effectief beschikbaar was gedeclareerd</code></pre>
+      </div>
+
+      <details class="deepdive">
+        <summary>Dieper: domains en deferrable constraints</summary>
+        <div class="deepdive-body">
+          <p>
+            Een <strong>domain</strong> is een hernoembaar, herbruikbaar type mét ingebouwde validatie:
+            <code>CREATE DOMAIN email AS text CHECK (VALUE ~ '^[^@]+@[^@]+$');</code> — daarna gebruik je
+            <code>email</code> als kolomtype op elke tabel, en de check komt automatisch mee.
+          </p>
+          <p>
+            <strong>Deferrable constraints</strong> laten je een constraint pas laten controleren bij
+            <code>COMMIT</code> in plaats van bij elke statement — nodig zodra twee rijen elkaar over en weer
+            refereren en je ze in dezelfde transactie moet invoegen.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= 07 LISTEN/NOTIFY ================= -->
+    <section class="chapter" id="ch-07">
+      <div class="chapter-head"><span class="num">07</span><h2>LISTEN/NOTIFY: ingebouwde pub/sub</h2></div>
+      <p class="chapter__intro">
+        PostgreSQL kan zelf berichten publiceren naar wie luistert — zonder message broker, zonder polling.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">-- Sessie A: luistert
+LISTEN order_events;
+
+-- Sessie B: publiceert (bv. vanuit een trigger na INSERT)
+NOTIFY order_events, '{"order_id": 42, "status": "paid"}';
+
+-- of automatisch via een trigger op de tabel zelf
+CREATE FUNCTION notify_order_change() RETURNS trigger AS $$
+BEGIN
+    PERFORM pg_notify('order_events', row_to_json(NEW)::text);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER orders_notify AFTER INSERT OR UPDATE ON orders
+FOR EACH ROW EXECUTE FUNCTION notify_order_change();</code></pre>
+      </div>
+      <p>
+        In een FastAPI-app kan je met <code>asyncpg</code> een permanente connectie openhouden die op deze
+        events luistert, en die vervolgens doorzet naar WebSocket-clients — of gebruikt om een Redis-cache
+        gericht ongeldig te maken (meer daarover in hoofdstuk 11).
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">listener.py</span></div>
+        <pre><code class="language-python">import asyncpg, asyncio, json
+
+async def listen():
+    conn = await asyncpg.connect(DSN)
+
+    def handler(connection, pid, channel, payload):
+        event = json.loads(payload)
+        print(f"order {event['order_id']} -> {event['status']}")
+
+    await conn.add_listener('order_events', handler)
+    while True:
+        await asyncio.sleep(3600)</code></pre>
+      </div>
+      <div class="callout callout--warn">
+        <span class="callout__icon">⚠️</span>
+        <p>
+          Belangrijke grens: <code>NOTIFY</code>-payloads zijn beperkt tot 8000 bytes en berichten worden
+          <strong>niet</strong> gebufferd voor een luisteraar die offline is — dit is <em>fire-and-forget</em>,
+          geen persistente queue. Voor iets dat gegarandeerd afgeleverd moet worden (zoals een betaalstatus
+          die absoluut niet verloren mag gaan), blijft een echte messagequeue of een outbox-tabel de juiste
+          keuze. Voor lichte, "vertel de UI dat er iets veranderd is"-events is het ideaal.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 08 PARTITIONERING ================= -->
+    <section class="chapter" id="ch-08">
+      <div class="chapter-head"><span class="num">08</span><h2>Partitionering &amp; schaalbaarheid</h2></div>
+      <p class="chapter__intro">
+        Declaratieve partitionering (sinds PostgreSQL 10) splitst een logisch één tabel fysiek op in meerdere
+        onderliggende tabellen, transparant voor je queries.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">psql</span></div>
+        <pre><code class="language-sql">CREATE TABLE events (
+    id         bigserial,
+    created_at timestamptz NOT NULL,
+    payload    jsonb
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE events_2026_07 PARTITION OF events
+    FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
+CREATE TABLE events_2026_08 PARTITION OF events
+    FOR VALUES FROM ('2026-08-01') TO ('2026-09-01');
+
+-- Een query met een datumfilter raakt automatisch enkel de relevante partitie(s)
+SELECT * FROM events WHERE created_at >= '2026-08-15';</code></pre>
+      </div>
+      <p>
+        Naast <code>RANGE</code> bestaat ook <code>LIST</code> (discrete waarden, bv. per land) en
+        <code>HASH</code> (gelijkmatig verdelen zonder natuurlijke sleutel). Het voordeel is drieledig: oude
+        partities kan je in één <code>DROP TABLE</code> wegdoen in plaats van een trage
+        <code>DELETE</code>, de planner kan irrelevante partities volledig overslaan
+        (<em>partition pruning</em>), en onderhoud zoals <code>VACUUM</code> loopt per partitie in plaats van
+        op een monolithische tabel. De extensie <code>pg_partman</code> automatiseert het aanmaken en
+        opruimen van tijdgebaseerde partities.
+      </p>
+    </section>
+
+    <!-- ================= 09 REPLICATIE ================= -->
+    <section class="chapter" id="ch-09">
+      <div class="chapter-head"><span class="num">09</span><h2>Replicatie &amp; high availability</h2></div>
+      <p class="chapter__intro">
+        Kort, ter aanvulling — dit bouwt verder op wat je al aan het verkennen bent met Patroni en
+        pg_auto_failover.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Streaming (fysiek)</th><th>Logisch</th></tr></thead>
+          <tbody>
+            <tr><td>Wat repliceert</td><td>elke WAL-byte, hele cluster</td><td>rij-wijzigingen, per tabel/publicatie</td></tr>
+            <tr><td>Doel-schema</td><td>identiek, byte-voor-byte</td><td>mag afwijken (andere kolommen, andere indexen)</td></tr>
+            <tr><td>Cross-versie</td><td>nee</td><td>ja</td></tr>
+            <tr><td>Typisch gebruikt voor</td><td>hot standby / failover</td><td>selectieve sync, zero-downtime upgrades, ETL naar een analytics-DB</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        PostgreSQL heeft zelf geen ingebouwde automatische failover — vandaar de externe orchestrators die je
+        al aan het bekijken bent: <strong>Patroni</strong> (gebruikt een distributed consensus store zoals
+        etcd om een leider te verkiezen) en het lichtere <strong>pg_auto_failover</strong>. Vergelijk dat met
+        MariaDB Galera Cluster: die biedt synchrone multi-master replicatie kant-en-klaar, maar met een ander
+        consistentiemodel en andere operationele afwegingen (write-amplification bij elke node, gevoeliger
+        voor netwerklatentie tussen nodes).
+      </p>
+    </section>
+
+    <!-- ================= 10 EXTENSIES ================= -->
+    <section class="chapter" id="ch-10">
+      <div class="chapter-head"><span class="num">10</span><h2>Meest gebruikte extensies</h2></div>
+      <p class="chapter__intro">
+        Dit is de extensibiliteit uit hoofdstuk 01 in de praktijk: <code>CREATE EXTENSION</code> en de
+        database krijgt er functionaliteit bij, zonder een aparte tool te installeren.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Extensie</th><th>Waarvoor</th></tr></thead>
+          <tbody>
+            <tr><td><code>pg_stat_statements</code></td><td>houdt per unieke query timing, calls en I/O bij — je eerste stap bij elk performance-onderzoek, en een natuurlijke aanvulling op de Grafana/Prometheus-stack die je al draait</td></tr>
+            <tr><td><code>pgcrypto</code></td><td>hashing (<code>crypt()</code>, bcrypt-achtig), symmetrische/asymmetrische encryptie, willekeurige bytes</td></tr>
+            <tr><td><code>pg_trgm</code></td><td>trigram-gebaseerde fuzzy matching — "typo-tolerante" zoekbalken en <code>ILIKE '%...%'</code> met een index in plaats van een sequential scan</td></tr>
+            <tr><td><code>unaccent</code></td><td>accent-ongevoelig zoeken, "café" matcht "cafe" — direct relevant voor Nederlandstalige/Franstalige data</td></tr>
+            <tr><td><code>btree_gist</code></td><td>laat gewone scalaire types meedoen in een GiST-index — vereist voor exclusion- en temporal constraints (hoofdstuk 06)</td></tr>
+            <tr><td><code>pg_cron</code></td><td>geplande taken (<code>cron</code>-syntax) die binnen de database zelf lopen, geen externe cronjob nodig</td></tr>
+            <tr><td><code>postgis</code></td><td>geospatiale types en queries — afstand, binnen-een-polygoon, routering</td></tr>
+            <tr><td><code>timescaledb</code></td><td>tijdreeksen: automatische partitionering, compressie en retentie voor sensordata — sluit aan bij je ESP32/sensor-achtergrond</td></tr>
+            <tr><td><code>citus</code></td><td>horizontale sharding over meerdere nodes; sinds de overname door Microsoft ook de basis onder Azure Cosmos DB for PostgreSQL</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="widget" id="extension-quiz">
+        <div class="widget__head">
+          <span class="widget__title">🧩 Match de use case aan de extensie</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <div class="ext-row" data-correct="pg_stat_statements">
+            <p>Je wil trage queries in productie opsporen zonder een externe APM-tool.</p>
+            <select><option value="">— kies —</option><option>pg_stat_statements</option><option>pg_trgm</option><option>pgcrypto</option><option>pg_cron</option></select>
+          </div>
+          <div class="ext-row" data-correct="pg_trgm">
+            <p>Een zoekbalk moet "jhon" ook laten matchen met "john".</p>
+            <select><option value="">— kies —</option><option>pg_stat_statements</option><option>pg_trgm</option><option>timescaledb</option><option>unaccent</option></select>
+          </div>
+          <div class="ext-row" data-correct="pgcrypto">
+            <p>Wachtwoord-hashes moeten in de database zelf berekend kunnen worden.</p>
+            <select><option value="">— kies —</option><option>pgcrypto</option><option>postgis</option><option>pg_cron</option><option>btree_gist</option></select>
+          </div>
+          <div class="ext-row" data-correct="timescaledb">
+            <p>Sensormetingen komen elke seconde binnen en moeten automatisch verouderen/comprimeren.</p>
+            <select><option value="">— kies —</option><option>citus</option><option>timescaledb</option><option>pg_trgm</option><option>postgis</option></select>
+          </div>
+          <div class="ext-row" data-correct="unaccent">
+            <p>"café" moet ook matchen met een zoekopdracht op "cafe".</p>
+            <select><option value="">— kies —</option><option>unaccent</option><option>pg_trgm</option><option>pgcrypto</option><option>pg_stat_statements</option></select>
+          </div>
+          <div class="ext-row" data-correct="pg_cron">
+            <p>Elke nacht om 3u moeten oude rijen automatisch opgeruimd worden, zonder externe cronjob.</p>
+            <select><option value="">— kies —</option><option>pg_cron</option><option>btree_gist</option><option>citus</option><option>postgis</option></select>
+          </div>
+          <div class="btn-row" style="margin-top:1em;">
+            <button class="btn btn--accent" id="ext-check">Controleer antwoorden</button>
+          </div>
+          <p class="quiz-score" id="ext-result" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 11 REDIS ================= -->
+    <section class="chapter" id="ch-11">
+      <div class="chapter-head"><span class="num">11</span><h2>PostgreSQL + Redis: succesvol combineren</h2></div>
+      <p class="chapter__intro">
+        De kernregel: PostgreSQL is de <strong>bron van waarheid</strong> (ACID, durable, het enige dat
+        écht niet verloren mag gaan), Redis is de <strong>snelheidslaag</strong> (in-memory, vluchtig, mag in
+        het slechtste geval leeg beginnen zonder dataverlies).
+      </p>
+
+      <h3><span class="h3-icon">▸</span>Cache-aside: het standaardpatroon</h3>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">main.py</span></div>
+        <pre><code class="language-python">async def get_balance(card_id: str) -> int:
+    cached = await redis.get(f"balance:{card_id}")
+    if cached is not None:
+        return int(cached)
+
+    row = await db.fetchrow(
+        "SELECT balance FROM cards WHERE id = $1", card_id
+    )
+    await redis.set(f"balance:{card_id}", row["balance"], ex=30)  # TTL in seconden
+    return row["balance"]</code></pre>
+      </div>
+
+      <div class="widget" id="cache-flow">
+        <div class="widget__head">
+          <span class="widget__title">⚡ Cache hit vs. cache miss</span>
+          <span class="widget__tag">interactief</span>
+        </div>
+        <div class="widget__body">
+          <div class="flow-diagram">
+            <div class="flow-node" id="node-api">FastAPI</div>
+            <div class="flow-connector">
+              <span class="flow-arrow" id="arrow-api-redis">→</span>
+              <span class="flow-arrow" id="arrow-redis-api">←</span>
+            </div>
+            <div class="flow-node" id="node-redis">Redis</div>
+            <div class="flow-connector">
+              <span class="flow-arrow" id="arrow-redis-pg">→</span>
+              <span class="flow-arrow" id="arrow-pg-redis">←</span>
+            </div>
+            <div class="flow-node" id="node-pg">PostgreSQL</div>
+          </div>
+          <div class="btn-row" style="justify-content:center;">
+            <button class="btn btn--accent" id="cache-hit-btn">Simuleer cache hit</button>
+            <button class="btn" id="cache-miss-btn">Simuleer cache miss</button>
+          </div>
+          <div id="cache-log">Klik op een van de knoppen om de flow te volgen.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>Invalidatie: het echte probleem</h3>
+      <p>
+        Cachen is eenvoudig; weten <em>wanneer een cache-entry fout is geworden</em> is het lastige deel.
+        Drie strategieën, oplopend in complexiteit:
+      </p>
+      <ul>
+        <li><strong>TTL alleen</strong> — simpelst, accepteert dat data tot X seconden verouderd kan zijn. Voeg <em>jitter</em> toe aan de TTL (bv. 30s ± 5s willekeurig) zodat niet honderden keys tegelijk verlopen en een <em>cache stampede</em> veroorzaken op je database.</li>
+        <li><strong>Expliciete invalidatie bij schrijven</strong> — na een <code>UPDATE</code> in dezelfde applicatiecode ook <code>DEL</code> op de bijbehorende Redis-key. Simpel, maar elke schrijfpad in je code moet er consequent aan denken.</li>
+        <li><strong>LISTEN/NOTIFY-gedreven invalidatie</strong> — een achtergrondtaak luistert op databasewijzigingen (hoofdstuk 07) en verwijdert de betrokken Redis-key, ongeacht via welk pad de wijziging binnenkwam (ook een handmatige <code>psql</code>-update door een beheerder). Robuuster, iets meer bewegende delen.</li>
+      </ul>
+
+      <div class="callout callout--warn">
+        <span class="callout__icon">⚠️</span>
+        <p>
+          Wat <strong>niet</strong> in Redis hoort: de enige kopie van geld-gerelateerde of anderszins
+          onvervangbare data. Redis' persistentie (RDB-snapshots, AOF) is voor herstel na een crash, geen
+          vervanging voor ACID-transacties. Gebruik Redis voor sessies, rate-limiting-tellers, korte-termijn
+          caches en pub/sub — laat PostgreSQL beslissen over alles waarbij een verloren of dubbel verwerkte
+          schrijfoperatie een probleem is.
+        </p>
+      </div>
+
+      <details class="deepdive">
+        <summary>Dieper: connection pooling met beide erbij</summary>
+        <div class="deepdive-body">
+          <p>
+            Een async FastAPI-app met meerdere workers kan makkelijk meer PostgreSQL-connecties openen dan de
+            server aankan (elke connectie kost geheugen server-side, ongeveer 5-10&nbsp;MB). Twee lagen om dat
+            te beheersen: <code>asyncpg.create_pool()</code> of SQLAlchemy's async engine-pool binnen elke
+            worker, én — bij veel workers of veel korte connecties — <strong>PgBouncer</strong> ervoor in
+            <em>transaction pooling</em>-modus. Let op: transaction pooling combineert slecht met
+            server-side prepared statements en met sessie-gebonden features zoals <code>LISTEN</code> — voor
+            een permanente <code>LISTEN</code>-connectie gebruik je een aparte, niet-gepoolde verbinding.
+            Redis-side gebruik je een vergelijkbare pool via <code>redis.asyncio.ConnectionPool</code>, met
+            een eigen max-connections-limiet.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= 12 FASTAPI PRAKTIJK ================= -->
+    <section class="chapter" id="ch-12">
+      <div class="chapter-head"><span class="num">12</span><h2>FastAPI in de praktijk</h2></div>
+      <p class="chapter__intro">
+        Twee praktische keuzes die je vroeg in een project maakt en die moeilijk terug te draaien zijn.
+      </p>
+
+      <h3><span class="h3-icon">▸</span>Driver: asyncpg vs. psycopg 3</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>asyncpg</th><th>psycopg 3 (async)</th></tr></thead>
+          <tbody>
+            <tr><td>Protocol</td><td>eigen binaire implementatie, zeer snel</td><td>volgt de C libpq, iets meer overhead</td></tr>
+            <tr><td>SQLAlchemy 2.0 async</td><td>ondersteund</td><td>ondersteund (de "aanbevolen" driver in recente SQLAlchemy-docs)</td></tr>
+            <tr><td>Prepared statements</td><td>automatisch, agressief gecachet</td><td>optioneel</td></tr>
+            <tr><td>Type-mapping</td><td>zet <code>jsonb</code>/arrays/UUID automatisch om naar Python-types</td><td>vergelijkbaar, via adapters</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Voor een nieuwe async-first FastAPI-app is <code>asyncpg</code> (rechtstreeks, of via SQLAlchemy's
+        async engine) meestal de snellere keuze puur op ruwe doorvoersnelheid; <code>psycopg 3</code> wint als
+        je ook synchrone code of exotischere libpq-features nodig hebt.
+      </p>
+
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">database.py</span></div>
+        <pre><code class="language-python">import asyncpg
+
+pool: asyncpg.Pool | None = None
+
+async def init_pool():
+    global pool
+    pool = await asyncpg.create_pool(
+        dsn=DATABASE_URL,
+        min_size=5,
+        max_size=20,       # afgestemd op PgBouncer/serverlimiet, niet willekeurig hoog
+        command_timeout=10,
+    )
+
+async def get_order(order_id: str):
+    async with pool.acquire() as conn:
+        return await conn.fetchrow(
+            "SELECT id, payload FROM orders WHERE id = $1", order_id
+        )</code></pre>
+      </div>
+
+      <h3><span class="h3-icon">▸</span>JSONB heen en terug met Pydantic</h3>
+      <p>
+        <code>asyncpg</code> geeft <code>jsonb</code>-kolommen terug als Python-<code>str</code> tenzij je een
+        codec registreert; met een codec krijg je meteen <code>dict</code>/<code>list</code>, direct bruikbaar
+        in een Pydantic-model.
+      </p>
+      <div class="code-block">
+        <div class="code-block__head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="code-block__label">database.py</span></div>
+        <pre><code class="language-python">import json
+
+async def init_pool():
+    global pool
+    pool = await asyncpg.create_pool(dsn=DATABASE_URL, init=setup_codecs)
+
+async def setup_codecs(conn):
+    await conn.set_type_codec(
+        'jsonb',
+        encoder=json.dumps,
+        decoder=json.loads,
+        schema='pg_catalog',
+    )</code></pre>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Je hebt nu de bouwstenen die verder gaan dan wat MariaDB biedt: rijkere datatypes, een ander
+        transactiemodel, indexen op maat, declaratieve constraints, event-driven pub/sub, partitionering,
+        het extensie-ecosysteem, en hoe dat allemaal samenspeelt met Redis in een FastAPI-backend. Logische
+        vervolgstappen zodra je hier klaar voor bent: <code>EXPLAIN (ANALYZE, BUFFERS)</code> leren lezen,
+        <code>pgvector</code> voor embeddings, en backup/point-in-time-recovery met WAL-archivering.
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initProgress();
+  initScrollspy();
+  initTabs();
+  initTerminal();
+  initJsonbExplorer();
+  initMvcc();
+  initIndexQuiz();
+  initBookingDemo();
+  initExtensionQuiz();
+  initCacheFlow();
+  if (window.hljs) { hljs.highlightAll(); }
+});
+
+function initProgress(){
+  const bar = document.getElementById('progress-bar');
+  const onScroll = () => {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const scrolled = max > 0 ? (h.scrollTop / max) : 0;
+    bar.style.width = (scrolled * 100) + '%';
+  };
+  document.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+}
+
+function initScrollspy(){
+  const sections = document.querySelectorAll('main .chapter');
+  const links = document.querySelectorAll('.sidebar .toc a');
+  const map = new Map();
+  links.forEach(l => map.set(l.getAttribute('href').slice(1), l));
+  if (!('IntersectionObserver' in window) || sections.length === 0) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const link = map.get(e.target.id);
+      if (!link) return;
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => obs.observe(s));
+}
+
+function initTabs(){
+  document.querySelectorAll('.tabs').forEach(group => {
+    const btns = group.querySelectorAll('.tab-btn');
+    const panels = group.querySelectorAll('.tab-panel');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const target = group.querySelector('.tab-panel[data-tab-panel="' + btn.dataset.tab + '"]');
+        if (target) target.classList.add('active');
+      });
+    });
+  });
+}
+
+function initTerminal(){
+  const el = document.getElementById('terminal-line');
+  if (!el) return;
+  const lines = [
+    "SELECT payload ->> 'status' FROM orders WHERE payload @> '{\"paid\": true}';",
+    "CREATE INDEX CONCURRENTLY idx_orders_gin ON orders USING GIN (payload);",
+    "SELECT id FROM bookings WHERE during @> now();"
+  ];
+  let li = 0, ci = 0, deleting = false;
+  function tick(){
+    const full = lines[li];
+    if (!deleting) {
+      ci++;
+      el.textContent = full.slice(0, ci);
+      if (ci >= full.length) { deleting = true; setTimeout(tick, 2000); return; }
+    } else {
+      ci--;
+      el.textContent = full.slice(0, ci);
+      if (ci <= 0) { deleting = false; li = (li + 1) % lines.length; }
+    }
+    setTimeout(tick, deleting ? 16 : 30);
+  }
+  tick();
+}
+
+function initJsonbExplorer(){
+  const root = document.getElementById('jsonb-explorer');
+  if (!root) return;
+  const pathSel = root.querySelector('#jsonb-path');
+  const buttons = root.querySelectorAll('.jsonb-op');
+  const sqlOut = root.querySelector('#jsonb-sql');
+  const resOut = root.querySelector('#jsonb-result');
+  const typeOut = root.querySelector('#jsonb-type');
+
+  const data = {
+    status: {
+      '->':  { sql: "payload -> 'status'",           result: '"paid"', type: 'jsonb' },
+      '->>': { sql: "payload ->> 'status'",          result: 'paid',   type: 'text' },
+      '#>':  { sql: "payload #> '{status}'",          result: '"paid"', type: 'jsonb' },
+      '#>>': { sql: "payload #>> '{status}'",         result: 'paid',   type: 'text' },
+      '@>':  { sql: "payload @> '{\"status\": \"paid\"}'", result: 'true', type: 'boolean' }
+    },
+    items: {
+      '->':  { sql: "payload -> 'items'",             result: '[{"sku": "A1", "qty": 2}]', type: 'jsonb' },
+      '->>': { sql: "payload ->> 'items'",            result: '[{"sku": "A1", "qty": 2}]', type: 'text (JSON-tekst)' },
+      '#>':  { sql: "payload #> '{items}'",            result: '[{"sku": "A1", "qty": 2}]', type: 'jsonb' },
+      '#>>': { sql: "payload #>> '{items}'",           result: '[{"sku": "A1", "qty": 2}]', type: 'text (JSON-tekst)' },
+      '@>':  { sql: "payload @> '{\"items\": [{\"sku\": \"A1\"}]}'", result: 'true', type: 'boolean' }
+    },
+    'meta.channel': {
+      '->':  { sql: "payload -> 'meta' -> 'channel'", result: '"web"', type: 'jsonb (chaining nodig)' },
+      '->>': { sql: "payload -> 'meta' ->> 'channel'", result: 'web',   type: 'text' },
+      '#>':  { sql: "payload #> '{meta,channel}'",     result: '"web"', type: 'jsonb' },
+      '#>>': { sql: "payload #>> '{meta,channel}'",    result: 'web',   type: 'text' },
+      '@>':  { sql: "payload @> '{\"meta\": {\"channel\": \"web\"}}'", result: 'true', type: 'boolean' }
+    }
+  };
+
+  function render(){
+    const path = pathSel.value;
+    const activeBtn = root.querySelector('.jsonb-op.active');
+    const op = activeBtn ? activeBtn.dataset.op : '->';
+    const d = data[path][op];
+    sqlOut.textContent = 'SELECT ' + d.sql + ' FROM orders;';
+    resOut.textContent = d.result;
+    typeOut.textContent = d.type;
+  }
+  buttons.forEach(b => {
+    b.addEventListener('click', () => {
+      buttons.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      render();
+    });
+  });
+  pathSel.addEventListener('change', render);
+  render();
+}
+
+function initMvcc(){
+  const root = document.getElementById('mvcc-demo');
+  if (!root) return;
+  const rowsEl = root.querySelector('#mvcc-rows');
+  const deadCountEl = root.querySelector('#mvcc-dead-count');
+  const logEl = root.querySelector('#mvcc-log');
+  let txn = 100;
+  let tuples = [{ id: 1, balance: 100, xmin: txn, xmax: null, alive: true }];
+
+  function render(){
+    rowsEl.innerHTML = '';
+    tuples.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'mvcc-tuple ' + (t.alive ? 'alive' : 'dead');
+      div.innerHTML =
+        '<span class="mvcc-id">#' + t.id + '</span>' +
+        '<span>balance: ' + t.balance + '</span>' +
+        '<span class="mvcc-meta">xmin=' + t.xmin + ' xmax=' + (t.xmax ?? '—') + '</span>' +
+        '<span class="mvcc-tag">' + (t.alive ? 'levend' : 'dood') + '</span>';
+      rowsEl.appendChild(div);
+    });
+    deadCountEl.textContent = tuples.filter(t => !t.alive).length;
+  }
+
+  root.querySelector('#mvcc-update').addEventListener('click', () => {
+    txn++;
+    const current = tuples.find(t => t.alive);
+    current.alive = false;
+    current.xmax = txn;
+    const newBalance = current.balance - 10;
+    tuples.push({ id: 1, balance: newBalance, xmin: txn, xmax: null, alive: true });
+    logEl.textContent = 'UPDATE orders SET balance = balance - 10 WHERE id = 1; — nieuwe tuple-versie geschreven (xmin=' + txn + '), oude versie gemarkeerd als dood.';
+    render();
+  });
+
+  root.querySelector('#mvcc-vacuum').addEventListener('click', () => {
+    const before = tuples.filter(t => !t.alive).length;
+    tuples = tuples.filter(t => t.alive);
+    logEl.textContent = before > 0
+      ? 'VACUUM orders; — ' + before + ' dode tuple(s) fysiek opgeruimd, ruimte vrijgegeven voor hergebruik.'
+      : 'VACUUM orders; — niets op te ruimen, geen dode tuples.';
+    render();
+  });
+
+  render();
+}
+
+function initIndexQuiz(){
+  const root = document.getElementById('index-quiz');
+  if (!root) return;
+  let score = 0;
+  const scoreEl = root.querySelector('#index-quiz-score');
+  root.querySelectorAll('.quiz-question').forEach(q => {
+    const correct = q.dataset.correct;
+    const feedback = q.querySelector('.quiz-feedback');
+    q.querySelectorAll('.quiz-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (q.dataset.answered) return;
+        q.dataset.answered = '1';
+        q.querySelectorAll('.quiz-option').forEach(o => o.classList.add('answered'));
+        const isCorrect = opt.dataset.value === correct;
+        opt.classList.add(isCorrect ? 'correct' : 'incorrect');
+        const correctBtn = q.querySelector('.quiz-option[data-value="' + correct + '"]');
+        if (correctBtn) correctBtn.classList.add('correct');
+        if (isCorrect) { score++; scoreEl.textContent = score; }
+        feedback.classList.add('visible');
+      });
+    });
+  });
+}
+
+function initBookingDemo(){
+  const root = document.getElementById('booking-demo');
+  if (!root) return;
+  const timeline = root.querySelector('#booking-timeline');
+  const log = root.querySelector('#booking-log');
+  let bookings = [
+    { start: 9, end: 11, label: 'Lasercutter — Jan' },
+    { start: 13, end: 15, label: '3D-printer — Elke' }
+  ];
+
+  function render(){
+    timeline.innerHTML = '';
+    bookings.forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'booking-block';
+      el.style.left = ((b.start - 8) / 12 * 100) + '%';
+      el.style.width = ((b.end - b.start) / 12 * 100) + '%';
+      el.textContent = b.label + ' (' + b.start + 'u–' + b.end + 'u)';
+      timeline.appendChild(el);
+    });
+  }
+
+  root.querySelectorAll('.booking-try').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const start = parseInt(btn.dataset.start, 10);
+      const end = parseInt(btn.dataset.end, 10);
+      const label = btn.dataset.label;
+      const overlap = bookings.some(b => start < b.end && end > b.start);
+      if (overlap) {
+        log.innerHTML = '<span class="log-error">ERROR:</span> conflicting key value violates exclusion constraint &quot;bookings_room_id_during_excl&quot;<br>DETAIL: Key (room_id, during)=(1, [' + start + 'u,' + end + 'u)) conflicteert met een bestaande reservering.';
+        log.className = 'booking-log log-fail';
+      } else {
+        bookings.push({ start, end, label });
+        log.innerHTML = 'INSERT 0 1 — reservering &quot;' + label + '&quot; (' + start + 'u–' + end + 'u) toegevoegd.';
+        log.className = 'booking-log log-ok';
+        render();
+      }
+    });
+  });
+
+  render();
+}
+
+function initExtensionQuiz(){
+  const root = document.getElementById('extension-quiz');
+  if (!root) return;
+  const checkBtn = root.querySelector('#ext-check');
+  const resultEl = root.querySelector('#ext-result');
+  checkBtn.addEventListener('click', () => {
+    let correct = 0;
+    const rows = root.querySelectorAll('.ext-row');
+    rows.forEach(row => {
+      const select = row.querySelector('select');
+      const isCorrect = select.value === row.dataset.correct;
+      row.classList.remove('row-correct', 'row-incorrect');
+      if (select.value) row.classList.add(isCorrect ? 'row-correct' : 'row-incorrect');
+      if (isCorrect) correct++;
+    });
+    resultEl.textContent = correct + ' van de ' + rows.length + ' juist.';
+  });
+}
+
+function initCacheFlow(){
+  const root = document.getElementById('cache-flow');
+  if (!root) return;
+  const log = root.querySelector('#cache-log');
+  const nodes = {
+    api: root.querySelector('#node-api'),
+    redis: root.querySelector('#node-redis'),
+    pg: root.querySelector('#node-pg')
+  };
+  const arrows = root.querySelectorAll('.flow-arrow');
+
+  function reset(){
+    Object.values(nodes).forEach(n => n.classList.remove('active'));
+    arrows.forEach(a => a.classList.remove('active'));
+  }
+  function step(delay){ return new Promise(r => setTimeout(r, delay)); }
+
+  root.querySelector('#cache-hit-btn').addEventListener('click', async () => {
+    reset();
+    log.textContent = '1. FastAPI vraagt saldo op bij Redis (GET balance:card:42)…';
+    nodes.api.classList.add('active');
+    await step(350);
+    root.querySelector('#arrow-api-redis').classList.add('active');
+    await step(350);
+    nodes.redis.classList.add('active');
+    log.textContent = '2. Cache hit — Redis antwoordt meteen vanuit geheugen (~1 ms).';
+    await step(550);
+    root.querySelector('#arrow-redis-api').classList.add('active');
+    await step(350);
+    log.textContent = '3. FastAPI stuurt het antwoord terug. PostgreSQL werd niet geraakt.';
+  });
+
+  root.querySelector('#cache-miss-btn').addEventListener('click', async () => {
+    reset();
+    log.textContent = '1. FastAPI vraagt saldo op bij Redis…';
+    nodes.api.classList.add('active');
+    await step(350);
+    root.querySelector('#arrow-api-redis').classList.add('active');
+    await step(350);
+    nodes.redis.classList.add('active');
+    log.textContent = '2. Cache miss — key niet gevonden of verlopen (TTL).';
+    await step(550);
+    root.querySelector('#arrow-redis-pg').classList.add('active');
+    await step(350);
+    nodes.pg.classList.add('active');
+    log.textContent = '3. Fallback naar PostgreSQL, de bron van waarheid (~15–40 ms).';
+    await step(650);
+    root.querySelector('#arrow-pg-redis').classList.add('active');
+    await step(350);
+    log.textContent = '4. Resultaat wordt teruggeschreven naar Redis met een TTL — de volgende aanvraag is wél een hit.';
+    await step(650);
+    root.querySelector('#arrow-redis-api').classList.add('active');
+    await step(350);
+    log.textContent = '5. FastAPI stuurt het antwoord terug naar de gebruiker.';
+  });
+}
+</script>
+</body>
+</html>
